@@ -32,7 +32,7 @@ export default function SkillFlowLanding() {
         >
           {/* Top Navbar */}
           <header className="w-full flex items-center justify-between z-30 pt-1">
-            <a href="#" className="inline-flex items-center transition-transform hover:scale-105 shrink-0">
+            <a href="https://skillflowlearn.com/" className="inline-flex items-center transition-transform hover:scale-105 shrink-0">
               <img
                 src={logoImg}
                 alt="SkillFlow Logo"
@@ -42,7 +42,7 @@ export default function SkillFlowLanding() {
 
             <nav className="flex items-center gap-3 sm:gap-7 md:gap-11 -translate-y-0.5 sm:-translate-y-1.5 mr-0 sm:mr-16 md:mr-28 lg:mr-40 xl:mr-56">
               <a
-                href="#"
+                href="https://skillflowlearn.com/"
                 className="font-['Baskervville'] font-medium text-[13px] sm:text-[15px] md:text-[17px] leading-tight text-white hover:text-blue-400 transition-colors inline-flex items-center py-1"
               >
                 Home
@@ -53,12 +53,14 @@ export default function SkillFlowLanding() {
               >
                 Contact us
               </button>
-              <button
-                onClick={() => alert("Login portal will be available soon.")}
+              <a
+                href="https://skillflowlearning.edmingle.com/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="font-['Rubik'] font-normal text-[13px] sm:text-[15px] md:text-[17px] leading-tight text-white hover:text-blue-400 transition-colors cursor-pointer inline-flex items-center py-1 whitespace-nowrap"
               >
                 Log in
-              </button>
+              </a>
             </nav>
           </header>
 
