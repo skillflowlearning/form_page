@@ -7,9 +7,6 @@ import { useGSAP } from '@gsap/react';
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Prevent mobile browser URL bar resizing from interrupting ScrollTrigger
-ScrollTrigger.config({ ignoreMobileResize: true });
-
 function cx(...parts: Array<string | undefined | false | null>): string {
   return parts.filter(Boolean).join(' ');
 }
@@ -30,12 +27,12 @@ export const FlowSection: React.FC<FlowSectionProps> = ({
   <section
     data-flow-section
     aria-label={ariaLabel}
-    className={cx('relative min-h-[100dvh] w-full overflow-hidden', className)}
+    className={cx('relative min-h-screen w-full overflow-hidden', className)}
   >
     <div
       data-flow-inner
       className={cx(
-        'flow-art-container relative flex min-h-[100dvh] w-full flex-col justify-between gap-3 sm:gap-6 px-4 sm:px-10 lg:px-[70px] py-4 sm:py-8 lg:py-10',
+        'flow-art-container relative flex min-h-screen w-full flex-col justify-between gap-6 px-[4vw] pt-[clamp(2rem,8vw,4vw)] pb-[4vw]',
         'will-change-transform overflow-hidden',
       )}
       style={{ transformOrigin: 'bottom left', ...style }}

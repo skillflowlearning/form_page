@@ -23,11 +23,11 @@ export default function SkillFlowLanding() {
       <section
         data-flow-section
         aria-label="SkillFlowLearn Hero"
-        className="relative min-h-[100dvh] w-full overflow-hidden bg-[#0B0F19] text-white flex flex-col justify-between"
+        className="relative min-h-screen w-full overflow-hidden bg-[#0B0F19] text-white flex flex-col justify-between"
       >
         <div
           data-flow-inner
-          className="flow-art-container relative flex min-h-[100dvh] w-full flex-col justify-between px-4 sm:px-10 lg:px-[70px] pt-4 sm:pt-9 pb-3 sm:pb-0 will-change-transform overflow-hidden"
+          className="flow-art-container relative flex min-h-screen w-full flex-col justify-between px-[4vw] pt-[clamp(2rem,8vw,4vw)] pb-[4vw] will-change-transform overflow-hidden"
           style={{ transformOrigin: 'bottom left' }}
         >
           {/* Top Navbar */}
@@ -36,7 +36,7 @@ export default function SkillFlowLanding() {
               <img
                 src={logoImg}
                 alt="SkillFlow Logo"
-                className="h-[28px] sm:h-[38px] md:h-[44px] w-auto object-contain"
+            className="h-[28px] sm:h-[38px] md:h-[44px] w-auto object-contain"
               />
             </a>
 
@@ -65,9 +65,9 @@ export default function SkillFlowLanding() {
           </header>
 
           {/* Left Content */}
-          <div className="relative z-20 my-auto pt-3 sm:pt-2 pb-5 sm:pb-16 max-w-[540px] xl:max-w-[580px]">
+          <div className="relative z-20 my-auto pt-[clamp(1rem,4vw,2rem)] pb-[clamp(2rem,6vw,4rem)] max-w-[540px] xl:max-w-[580px]">
             {/* Title */}
-            <h1 className="font-sans font-extrabold text-white text-[clamp(2.25rem,6.5vw,5.6rem)] leading-[0.96] tracking-tight uppercase select-none">
+            <h1 className="font-sans font-extrabold text-white text-[clamp(2.75rem,5.6vw,5.6rem)] leading-[0.96] tracking-tight uppercase select-none">
               Skill
               <br />
               <span className="text-blue-500">Flow</span>
@@ -102,7 +102,7 @@ export default function SkillFlowLanding() {
             <img
               src={frontImg}
               alt="SkillFlow Student"
-              className="h-[44vh] sm:h-[65vh] md:h-[75vh] lg:h-[84vh] xl:h-[90vh] max-h-[880px] w-auto object-contain object-bottom object-right select-none drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)]"
+              className="h-[48vh] sm:h-[58vh] md:h-[66vh] lg:h-[72vh] xl:h-[76vh] 2xl:h-[78vh] max-h-[740px] w-auto object-contain object-bottom select-none drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)]"
             />
           </div>
 
@@ -119,14 +119,14 @@ export default function SkillFlowLanding() {
         aria-label="Step 1 - Basics"
         style={{ backgroundColor: '#fd5200', color: '#ffffff' }}
       >
-        <p className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em]">01 — Step 1: Foundation</p>
-        <hr className="my-1.5 sm:my-3 border-none border-t border-black/30" />
+        <p className="text-xs font-bold uppercase tracking-[0.2em]">01 — Step 1: Foundation</p>
+        <hr className="my-3 border-none border-t border-black/30" />
 
         <div>
-          <p className="text-[11px] sm:text-sm md:text-base font-semibold tracking-wider uppercase opacity-90 mb-0.5 sm:mb-1">
+          <p className="text-sm font-semibold tracking-wider uppercase opacity-90 mb-1">
             We Teach It The Easy Way
           </p>
-          <h2 className="text-[clamp(1.9rem,5.5vw,7.5rem)] font-bold leading-[0.92] uppercase tracking-tight">
+          <h2 className="text-[clamp(3rem,10vw,11rem)] font-bold leading-[0.92] uppercase tracking-tight">
             Start
             <br />
             With The
@@ -135,39 +135,39 @@ export default function SkillFlowLanding() {
           </h2>
         </div>
 
-        <hr className="my-1.5 sm:my-3 border-none border-t border-black/30" />
+        <hr className="my-3 border-none border-t border-black/30" />
 
-        <p className="max-w-[52ch] text-[clamp(0.8rem,1.4vw,1.35rem)] font-normal leading-snug sm:leading-relaxed">
+        <p className="max-w-[52ch] text-[clamp(1.05rem,2.2vw,1.85rem)] font-normal leading-relaxed">
           In the first step we explain every concept from scratch. Simple language, live examples and doubt support help you build an unbreakable foundation.
         </p>
 
-        <hr className="my-1.5 sm:my-3 border-none border-t border-black/30" />
+        <hr className="my-3 border-none border-t border-black/30" />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
-          <div className="p-2.5 sm:p-4 rounded-lg sm:rounded-xl bg-black/10 backdrop-blur-sm">
-            <div className="flex items-center gap-1.5 mb-0.5 sm:mb-1">
-              <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-              <p className="text-[11px] sm:text-sm font-bold uppercase tracking-wider">Zero Jargon</p>
+        <div className="flex flex-wrap gap-[3vw]">
+          <div className="p-4 rounded-xl bg-black/10 backdrop-blur-sm flex-1 min-w-[200px]">
+            <div className="flex items-center gap-1.5 mb-1">
+              <BookOpen className="w-4 h-4 shrink-0" />
+              <p className="text-sm font-bold uppercase tracking-wider">Zero Jargon</p>
             </div>
-            <p className="text-[10px] sm:text-xs leading-tight sm:leading-relaxed opacity-90">
+            <p className="text-xs leading-relaxed opacity-90">
               Clear, digestible explanations with interactive visual walkthroughs.
             </p>
           </div>
-          <div className="p-2.5 sm:p-4 rounded-lg sm:rounded-xl bg-black/10 backdrop-blur-sm">
-            <div className="flex items-center gap-1.5 mb-0.5 sm:mb-1">
-              <Code className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-              <p className="text-[11px] sm:text-sm font-bold uppercase tracking-wider">Live Examples</p>
+          <div className="p-4 rounded-xl bg-black/10 backdrop-blur-sm flex-1 min-w-[200px]">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Code className="w-4 h-4 shrink-0" />
+              <p className="text-sm font-bold uppercase tracking-wider">Live Examples</p>
             </div>
-            <p className="text-[10px] sm:text-xs leading-tight sm:leading-relaxed opacity-90">
+            <p className="text-xs leading-relaxed opacity-90">
               Code along with real snippets rather than abstract formulas. Build muscle memory.
             </p>
           </div>
-          <div className="p-2.5 sm:p-4 rounded-lg sm:rounded-xl bg-black/10 backdrop-blur-sm sm:col-span-2 lg:col-span-1">
-            <div className="flex items-center gap-1.5 mb-0.5 sm:mb-1">
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-              <p className="text-[11px] sm:text-sm font-bold uppercase tracking-wider">Doubt Support</p>
+          <div className="p-4 rounded-xl bg-black/10 backdrop-blur-sm flex-1 min-w-[200px]">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Sparkles className="w-4 h-4 shrink-0" />
+              <p className="text-sm font-bold uppercase tracking-wider">Doubt Support</p>
             </div>
-            <p className="text-[10px] sm:text-xs leading-tight sm:leading-relaxed opacity-90">
+            <p className="text-xs leading-relaxed opacity-90">
               Never get stuck. Direct answers and guidance whenever you hit a roadblock.
             </p>
           </div>
@@ -179,16 +179,16 @@ export default function SkillFlowLanding() {
         aria-label="Step 2 - Deep Learning"
         style={{ backgroundColor: '#090a0f', color: '#ffffff' }}
       >
-        <p className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-blue-400">
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-400">
           02 — Step 2: Mastery
         </p>
-        <hr className="my-1.5 sm:my-3 border-none border-t border-white/20" />
+        <hr className="my-3 border-none border-t border-white/20" />
 
         <div>
-          <p className="text-[11px] sm:text-sm md:text-base font-semibold tracking-wider uppercase text-blue-300 mb-0.5 sm:mb-1">
+          <p className="text-sm font-semibold tracking-wider uppercase text-blue-300 mb-1">
             Understand Every Concept In Depth
           </p>
-          <h2 className="text-[clamp(1.9rem,5.5vw,7.5rem)] font-bold leading-[0.92] uppercase tracking-tight">
+          <h2 className="text-[clamp(3rem,10vw,11rem)] font-bold leading-[0.92] uppercase tracking-tight">
             Go
             <br />
             Deeper
@@ -197,30 +197,30 @@ export default function SkillFlowLanding() {
           </h2>
         </div>
 
-        <hr className="my-1.5 sm:my-3 border-none border-t border-white/20" />
+        <hr className="my-3 border-none border-t border-white/20" />
 
-        <p className="max-w-[52ch] text-[clamp(0.8rem,1.4vw,1.35rem)] font-light leading-snug sm:leading-relaxed text-slate-200">
+        <p className="max-w-[52ch] text-[clamp(1.05rem,2.2vw,1.85rem)] font-light leading-relaxed text-slate-200">
           Now we build advanced topics on top of the basics. Each concept is studied in depth with practice questions and real-world cases, so you don&apos;t just memorize, you truly understand.
         </p>
 
-        <hr className="my-1.5 sm:my-3 border-none border-t border-white/20" />
+        <hr className="my-3 border-none border-t border-white/20" />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
-          <div className="p-2.5 sm:p-4 rounded-lg sm:rounded-xl bg-white/5 border border-white/10">
-            <p className="mb-0.5 sm:mb-1 text-[11px] sm:text-sm font-bold uppercase tracking-wider text-blue-400">Architecture</p>
-            <p className="text-[10px] sm:text-xs leading-tight sm:leading-relaxed opacity-80">
+        <div className="flex flex-wrap gap-[3vw]">
+          <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex-1 min-w-[200px]">
+            <p className="mb-1 text-sm font-bold uppercase tracking-wider text-blue-400">Architecture</p>
+            <p className="text-xs leading-relaxed opacity-80">
               Master state flows, performance bottlenecks, and scalable system patterns.
             </p>
           </div>
-          <div className="p-2.5 sm:p-4 rounded-lg sm:rounded-xl bg-white/5 border border-white/10">
-            <p className="mb-0.5 sm:mb-1 text-[11px] sm:text-sm font-bold uppercase tracking-wider text-blue-400">Real Cases</p>
-            <p className="text-[10px] sm:text-xs leading-tight sm:leading-relaxed opacity-80">
+          <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex-1 min-w-[200px]">
+            <p className="mb-1 text-sm font-bold uppercase tracking-wider text-blue-400">Real Cases</p>
+            <p className="text-xs leading-relaxed opacity-80">
               Analyze production-grade architectures and solve genuine engineering challenges.
             </p>
           </div>
-          <div className="p-2.5 sm:p-4 rounded-lg sm:rounded-xl bg-white/5 border border-white/10 sm:col-span-2 lg:col-span-1">
-            <p className="mb-0.5 sm:mb-1 text-[11px] sm:text-sm font-bold uppercase tracking-wider text-blue-400">Mental Models</p>
-            <p className="text-[10px] sm:text-xs leading-tight sm:leading-relaxed opacity-80">
+          <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex-1 min-w-[200px]">
+            <p className="mb-1 text-sm font-bold uppercase tracking-wider text-blue-400">Mental Models</p>
+            <p className="text-xs leading-relaxed opacity-80">
               Develop intuition for complex code so you can debug like a senior engineer.
             </p>
           </div>
@@ -232,14 +232,14 @@ export default function SkillFlowLanding() {
         aria-label="Step 3 - Minor Projects"
         style={{ backgroundColor: '#F5F0E8', color: '#000000' }}
       >
-        <p className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em]">03 — Step 3: Application</p>
-        <hr className="my-1.5 sm:my-3 border-none border-t border-black/40" />
+        <p className="text-xs font-bold uppercase tracking-[0.2em]">03 — Step 3: Application</p>
+        <hr className="my-3 border-none border-t border-black/40" />
 
         <div>
-          <p className="text-[11px] sm:text-sm md:text-base font-semibold tracking-wider uppercase opacity-75 mb-0.5 sm:mb-1">
+          <p className="text-sm font-semibold tracking-wider uppercase opacity-75 mb-1">
             Put Your Learning To Use
           </p>
-          <h2 className="text-[clamp(1.9rem,5.5vw,7.5rem)] font-bold leading-[0.92] uppercase tracking-tight">
+          <h2 className="text-[clamp(3rem,10vw,11rem)] font-bold leading-[0.92] uppercase tracking-tight">
             Minor
             <br />
             Projects
@@ -248,39 +248,39 @@ export default function SkillFlowLanding() {
           </h2>
         </div>
 
-        <hr className="my-1.5 sm:my-3 border-none border-t border-black/40" />
+        <hr className="my-3 border-none border-t border-black/40" />
 
-        <p className="max-w-[52ch] text-[clamp(0.8rem,1.4vw,1.35rem)] font-normal leading-snug sm:leading-relaxed">
+        <p className="max-w-[52ch] text-[clamp(1.05rem,2.2vw,1.85rem)] font-normal leading-relaxed">
           Apply what you&apos;ve learned in smaller, targeted projects. Every minor project builds your confidence and provides tangible, hands-on experience.
         </p>
 
-        <hr className="my-1.5 sm:my-3 border-none border-t border-black/40" />
+        <hr className="my-3 border-none border-t border-black/40" />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
-          <div className="p-2.5 sm:p-4 rounded-lg sm:rounded-xl bg-black/5 border border-black/10">
-            <div className="flex items-center gap-1.5 mb-0.5 sm:mb-1">
-              <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-600 shrink-0" />
-              <p className="text-[11px] sm:text-sm font-bold uppercase tracking-wider">Hands-on</p>
+        <div className="flex flex-wrap gap-[3vw]">
+          <div className="p-4 rounded-xl bg-black/5 border border-black/10 flex-1 min-w-[200px]">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Layers className="w-4 h-4 text-orange-600 shrink-0" />
+              <p className="text-sm font-bold uppercase tracking-wider">Hands-on</p>
             </div>
-            <p className="text-[10px] sm:text-xs leading-tight sm:leading-relaxed opacity-80">
+            <p className="text-xs leading-relaxed opacity-80">
               A practical project after every module to cement understanding.
             </p>
           </div>
-          <div className="p-2.5 sm:p-4 rounded-lg sm:rounded-xl bg-black/5 border border-black/10">
-            <div className="flex items-center gap-1.5 mb-0.5 sm:mb-1">
-              <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 shrink-0" />
-              <p className="text-[11px] sm:text-sm font-bold uppercase tracking-wider">Mentor Review</p>
+          <div className="p-4 rounded-xl bg-black/5 border border-black/10 flex-1 min-w-[200px]">
+            <div className="flex items-center gap-1.5 mb-1">
+              <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+              <p className="text-sm font-bold uppercase tracking-wider">Mentor Review</p>
             </div>
-            <p className="text-[10px] sm:text-xs leading-tight sm:leading-relaxed opacity-80">
+            <p className="text-xs leading-relaxed opacity-80">
               Receive line-by-line review and tips from seasoned professionals.
             </p>
           </div>
-          <div className="p-2.5 sm:p-4 rounded-lg sm:rounded-xl bg-black/5 border border-black/10 sm:col-span-2 lg:col-span-1">
-            <div className="flex items-center gap-1.5 mb-0.5 sm:mb-1">
-              <Code className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 shrink-0" />
-              <p className="text-[11px] sm:text-sm font-bold uppercase tracking-wider">Portfolio Ready</p>
+          <div className="p-4 rounded-xl bg-black/5 border border-black/10 flex-1 min-w-[200px]">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Code className="w-4 h-4 text-blue-600 shrink-0" />
+              <p className="text-sm font-bold uppercase tracking-wider">Portfolio Ready</p>
             </div>
-            <p className="text-[10px] sm:text-xs leading-tight sm:leading-relaxed opacity-80">
+            <p className="text-xs leading-relaxed opacity-80">
               Commit your code to GitHub with clean documentation.
             </p>
           </div>
@@ -292,14 +292,14 @@ export default function SkillFlowLanding() {
         aria-label="Step 4 - Major Project & Certificates"
         style={{ backgroundColor: '#1A3DE8', color: '#ffffff' }}
       >
-        <p className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em]">04 — Step 4: Outcome</p>
-        <hr className="my-1.5 sm:my-3 border-none border-t border-white/40" />
+        <p className="text-xs font-bold uppercase tracking-[0.2em]">04 — Step 4: Outcome</p>
+        <hr className="my-3 border-none border-t border-white/40" />
 
         <div>
-          <p className="text-[11px] sm:text-sm md:text-base font-semibold tracking-wider uppercase opacity-90 mb-0.5 sm:mb-1">
+          <p className="text-sm font-semibold tracking-wider uppercase opacity-90 mb-1">
             And Your Certificates
           </p>
-          <h2 className="text-[clamp(1.9rem,5.5vw,7.5rem)] font-bold leading-[0.92] uppercase tracking-tight">
+          <h2 className="text-[clamp(3rem,10vw,11rem)] font-bold leading-[0.92] uppercase tracking-tight">
             Major
             <br />
             Project &amp;
@@ -308,54 +308,54 @@ export default function SkillFlowLanding() {
           </h2>
         </div>
 
-        <hr className="my-1.5 sm:my-3 border-none border-t border-white/40" />
+        <hr className="my-3 border-none border-t border-white/40" />
 
-        <p className="max-w-[55ch] text-[clamp(0.8rem,1.4vw,1.35rem)] font-light leading-snug sm:leading-relaxed">
+        <p className="max-w-[55ch] text-[clamp(1.05rem,2.2vw,1.85rem)] font-light leading-relaxed">
           The final step: a big, real-world project for your portfolio. Receive dual certificates that validate your expertise.
         </p>
 
-        <hr className="my-1.5 sm:my-3 border-none border-t border-white/40" />
+        <hr className="my-3 border-none border-t border-white/40" />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
-          <div className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
+        <div className="flex flex-wrap gap-[3vw]">
+          <div className="p-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex-1 min-w-[200px]">
             <div className="flex items-center gap-1.5 mb-1">
-              <Award className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 shrink-0" />
-              <p className="text-[11px] sm:text-sm font-bold uppercase tracking-wider">Certificate 1</p>
+              <Award className="w-5 h-5 text-amber-300 shrink-0" />
+              <p className="text-sm font-bold uppercase tracking-wider">Certificate 1</p>
             </div>
-            <h3 className="font-semibold text-xs sm:text-base mb-0.5">Course Completion Certificate</h3>
-            <p className="text-[10px] sm:text-xs leading-tight sm:leading-relaxed opacity-80">
+            <h3 className="font-semibold text-base mb-0.5">Course Completion Certificate</h3>
+            <p className="text-xs leading-relaxed opacity-80">
               Awarded when you complete all curriculum modules and code walkthroughs.
             </p>
           </div>
 
-          <div className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
+          <div className="p-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex-1 min-w-[200px]">
             <div className="flex items-center gap-1.5 mb-1">
-              <Award className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 shrink-0" />
-              <p className="text-[11px] sm:text-sm font-bold uppercase tracking-wider">Certificate 2</p>
+              <Award className="w-5 h-5 text-amber-300 shrink-0" />
+              <p className="text-sm font-bold uppercase tracking-wider">Certificate 2</p>
             </div>
-            <h3 className="font-semibold text-xs sm:text-base mb-0.5">Project / Internship Certificate</h3>
-            <p className="text-[10px] sm:text-xs leading-tight sm:leading-relaxed opacity-80">
+            <h3 className="font-semibold text-base mb-0.5">Project / Internship Certificate</h3>
+            <p className="text-xs leading-relaxed opacity-80">
               Awarded upon successful submission and review of your full major project.
             </p>
           </div>
         </div>
 
-        <hr className="my-1.5 sm:my-3 border-none border-t border-white/40" />
+        <hr className="my-3 border-none border-t border-white/40" />
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-auto">
-          <p className="text-[11px] sm:text-sm md:text-base font-normal tracking-wide opacity-80">
+          <p className="text-base font-normal tracking-wide opacity-80">
             Fill out the form to register today and start building your future.
           </p>
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={goToForm}
-              className="w-full sm:w-auto px-5 sm:px-8 py-2.5 sm:py-3.5 rounded-xl font-bold bg-white text-blue-900 hover:bg-slate-100 transition-all duration-200 shadow-xl hover:scale-[1.02] active:scale-[0.98] cursor-pointer text-center text-xs sm:text-base"
+              className="px-8 py-3.5 rounded-xl font-bold bg-white text-blue-900 hover:bg-slate-100 transition-all duration-200 shadow-xl hover:scale-[1.02] active:scale-[0.98] cursor-pointer text-center"
             >
               Fill The Form
             </button>
             <button
               onClick={() => alert("Our counselors are available. Reach out at support@skillflowlearn.com")}
-              className="w-full sm:w-auto px-5 sm:px-8 py-2.5 sm:py-3.5 rounded-xl font-medium border border-white/30 bg-white/10 hover:bg-white/20 text-white transition-all duration-200 cursor-pointer text-center text-xs sm:text-base"
+              className="px-8 py-3.5 rounded-xl font-medium border border-white/30 bg-white/10 hover:bg-white/20 text-white transition-all duration-200 cursor-pointer text-center"
             >
               Talk To Us
             </button>
