@@ -1,7 +1,6 @@
 import FlowArt, { FlowSection } from '@/components/ui/story-scroll';
 import logoImg from '@/assets/image/logo_cropped.png';
 import frontImg from '@/assets/image/frontimage_cropped.png';
-import iconImg from '@/assets/image/icon_image.png';
 import { Award, CheckCircle, Code, Sparkles, ArrowRight, BookOpen, Layers } from 'lucide-react';
 
 export default function SkillFlowLanding() {
@@ -67,18 +66,11 @@ export default function SkillFlowLanding() {
 
           {/* Left Content */}
           <div className="relative z-20 my-auto pt-[clamp(1rem,4vw,2rem)] pb-[clamp(2rem,6vw,4rem)] max-w-[540px] xl:max-w-[580px]">
-            {/* Icon + Title */}
-            <div className="flex items-center gap-3 sm:gap-4 mb-2 sm:mb-3">
-              <img
-                src={iconImg}
-                alt="SkillFlow Icon"
-                className="h-[clamp(2.5rem,5vw,4.5rem)] w-auto object-contain select-none drop-shadow-[0_0_12px_rgba(59,130,246,0.5)]"
-              />
-            </div>
+            {/* Title */}
             <h1 className="font-sans font-extrabold text-white text-[clamp(2.75rem,5.6vw,5.6rem)] leading-[0.96] tracking-tight uppercase select-none">
               About
               <br />
-              Skill<span className="text-blue-500">Flow</span>
+              <span className="text-blue-500">SkillFlow</span>
               <br />
               Learning
             </h1>
