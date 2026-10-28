@@ -4,7 +4,15 @@ import * as React from "react";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
-import { ArrowRight, Mail, Phone, Headphones, CheckCircle2, Loader2, ArrowLeft, X } from "lucide-react";
+import {
+  ArrowRight,
+  Mail,
+  Phone,
+  Headphones,
+  CheckCircle2,
+  Loader2,
+  ArrowLeft,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import * as SeparatorPrimitive from "@radix-ui/react-separator";
 import * as d3 from "d3";
@@ -36,6 +44,7 @@ const CONTACT_LINKS = [
   },
 ];
 
+// ─── Types ────────────────────────────────────────────────────────────────────
 interface GlobeWireframeProps {
   width?: number;
   height?: number;
@@ -48,18 +57,15 @@ interface GlobeWireframeProps {
   sphereOutlineWidth?: number;
   autoRotate?: boolean;
   autoRotateSpeed?: number;
-  rotateToLocation?: string | [number, number];
   rotateCities?: string[];
   rotationSpeed?: number;
   initialRotation?: [number, number];
   enableInteraction?: boolean;
   showGraticule?: boolean;
-  animationDuration?: number;
-  startAsGlobe?: boolean;
-  countryFillColor?: string;
-  countryHoverColor?: string;
   variant?: "wireframe" | "wireframesolid" | "solid";
   scale?: number;
+  countryFillColor?: string;
+  countryHoverColor?: string;
   backgroundColor?: string;
 }
 
@@ -70,575 +76,224 @@ interface GeoFeature {
 }
 
 interface WorldAtlasTopology extends Topology {
-  objects: {
-    countries: GeometryCollection;
-  };
-}
-
-interface CustomProjection extends d3.GeoProjection {
-  alpha(value: number): CustomProjection;
-  alpha(): number;
+  objects: { countries: GeometryCollection };
 }
 
 const cityCoordinates: Record<string, [number, number]> = {
-  "san francisco": [37.7749, -122.4194],
-  "new york": [40.7128, -74.006],
-  london: [51.5074, -0.1278],
-  tokyo: [35.6762, 139.6503],
-  paris: [48.8566, 2.3522],
-  moscow: [55.7558, 37.6176],
+  "new delhi": [28.6139, 77.209],
+  mumbai: [19.076, 72.8777],
+  bangalore: [12.9716, 77.5946],
   dubai: [25.2048, 55.2708],
   singapore: [1.3521, 103.8198],
+  london: [51.5074, -0.1278],
+  "new york": [40.7128, -74.006],
+  tokyo: [35.6762, 139.6503],
   sydney: [-33.8688, 151.2093],
-  mumbai: [19.076, 72.8777],
-  "new delhi": [28.6139, 77.209],
-  bangalore: [12.9716, 77.5946],
-  "los angeles": [34.0522, -118.2437],
-  chicago: [41.8781, -87.6298],
 };
 
-function orthographicRaw(x: number, y: number): [number, number] {
-  const cosy = Math.cos(y);
-  return [cosy * Math.sin(x), Math.sin(y)];
-}
-
-function equirectangularRaw(lambda: number, phi: number): [number, number] {
-  return [lambda, phi];
-}
-
-function interpolateProjection(
-  raw0: (lambda: number, phi: number) => [number, number],
-  raw1: (lambda: number, phi: number) => [number, number],
-): CustomProjection {
-  let t = 0;
-
-  const createRawProjection = (
-    alpha: number,
-  ): ((lambda: number, phi: number) => [number, number]) => {
-    return (lambda: number, phi: number): [number, number] => {
-      const [x0, y0] = raw0(lambda, phi);
-      const [x1, y1] = raw1(lambda, phi);
-      return [x0 + alpha * (x1 - x0), y0 + alpha * (y1 - y0)];
-    };
-  };
-
-  const projection = d3.geoProjection(
-    createRawProjection(t),
-  ) as unknown as CustomProjection;
-
-  const alphaMethod = ((value?: number): CustomProjection | number => {
-    if (value !== undefined) {
-      t = +value;
-      const newProjection = d3.geoProjection(
-        createRawProjection(t),
-      ) as unknown as CustomProjection;
-
-      if (projection.scale()) newProjection.scale(projection.scale());
-      if (projection.translate())
-        newProjection.translate(projection.translate());
-      if (projection.rotate()) newProjection.rotate(projection.rotate());
-      if (projection.precision())
-        newProjection.precision(projection.precision());
-
-      newProjection.alpha = alphaMethod as CustomProjection["alpha"];
-
-      return newProjection;
-    }
-    return t;
-  }) as CustomProjection["alpha"];
-
-  projection.alpha = alphaMethod;
-
-  return projection;
-}
-
+// ─── Globe Component ──────────────────────────────────────────────────────────
 function GlobeWireframe({
   width,
   height,
-  className = "aspect-square w-full max-w-150",
+  className = "aspect-square w-full",
   strokeColor = "currentColor",
-  strokeWidth = 1.0,
+  strokeWidth = 0.6,
   graticuleColor = "currentColor",
-  graticuleOpacity = 0.2,
+  graticuleOpacity = 0.12,
   sphereOutlineColor = "currentColor",
-  sphereOutlineWidth = 1,
+  sphereOutlineWidth = 1.5,
   autoRotate = true,
-  autoRotateSpeed = 0.5,
-  rotateToLocation,
+  autoRotateSpeed = 0.45,
   rotateCities = [],
   rotationSpeed = 3000,
   initialRotation = [0, 0],
   enableInteraction = true,
-  showGraticule = true,
-  variant = "wireframe",
+  showGraticule = false,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  variant: _variant = "wireframesolid",
   scale = 1,
   backgroundColor,
-  countryFillColor,
-  countryHoverColor,
 }: GlobeWireframeProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [progress] = useState(0);
   const [worldData, setWorldData] = useState<GeoFeature[]>([]);
   const [rotation, setRotation] = useState<[number, number]>(initialRotation);
   const [isDragging, setIsDragging] = useState(false);
   const [lastMouse, setLastMouse] = useState([0, 0]);
   const [isVisible, setIsVisible] = useState(false);
-  const rotationInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [currentCityIndex, setCurrentCityIndex] = useState(0);
+  const animationFrame = useRef<number | null>(null);
   const rotationAnimFrame = useRef<number | null>(null);
   const rotationStartTime = useRef<number | null>(null);
   const rotationFrom = useRef<[number, number]>([0, 0]);
   const rotationTo = useRef<[number, number]>([0, 0]);
-  const animationFrame = useRef<number | null>(null);
-  const [currentCityIndex, setCurrentCityIndex] = useState(0);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const rotationInterval = useRef<ReturnType<typeof setInterval> | null>(null);
   const resizeObserver = useRef<ResizeObserver | null>(null);
   const rotationRef = useRef(rotation);
 
-  useEffect(() => {
-    rotationRef.current = rotation;
-  }, [rotation]);
+  useEffect(() => { rotationRef.current = rotation; }, [rotation]);
 
   const useResponsive = !width && !height;
-  const finalWidth = useResponsive ? dimensions.width : width || 800;
+  const finalWidth = useResponsive ? dimensions.width : width || 500;
   const finalHeight = useResponsive ? dimensions.height : height || 500;
-
-  const defaultStrokeColor = strokeColor || "currentColor";
-  const defaultGraticuleColor = graticuleColor || "currentColor";
-  const defaultSphereOutlineColor = sphereOutlineColor || "currentColor";
-  const defaultCountryFillColor =
-    countryFillColor || (variant === "solid" ? "currentColor" : "none");
-  const defaultBackgroundColor = backgroundColor || "transparent";
+  const defaultBg = backgroundColor || "transparent";
 
   useEffect(() => {
     if (!containerRef.current) return;
+    const el = containerRef.current;
 
-    const container = containerRef.current;
-
-    const updateDimensions = () => {
-      if (container && useResponsive) {
-        const w = container.offsetWidth || 300;
+    const updateSize = () => {
+      if (useResponsive) {
+        const w = el.offsetWidth || 300;
         setDimensions({ width: w, height: w });
       }
     };
-
-    updateDimensions();
+    updateSize();
 
     if (useResponsive) {
-      resizeObserver.current = new ResizeObserver(updateDimensions);
-      resizeObserver.current.observe(container);
+      resizeObserver.current = new ResizeObserver(updateSize);
+      resizeObserver.current.observe(el);
     }
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
-        setIsVisible(entry.isIntersecting);
-      },
+    const io = new IntersectionObserver(
+      ([entry]) => setIsVisible(entry.isIntersecting),
       { threshold: 0.1 },
     );
-
-    observer.observe(container);
+    io.observe(el);
 
     return () => {
-      if (resizeObserver.current) {
-        resizeObserver.current.disconnect();
-      }
-      observer.unobserve(container);
+      resizeObserver.current?.disconnect();
+      io.unobserve(el);
     };
   }, [useResponsive]);
 
   useEffect(() => {
-    const loadWorldData = async () => {
-      try {
-        const response = await fetch(
-          "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json",
-        );
-        const world = (await response.json()) as WorldAtlasTopology;
-        const countries = feature(world, world.objects.countries)
-          .features as GeoFeature[];
-        setWorldData(countries);
-      } catch (error) {
-        console.error("Error loading world data:", error);
-        const fallbackData: GeoFeature[] = [
-          {
-            type: "Feature",
-            geometry: {
-              type: "Polygon",
-              coordinates: [
-                [
-                  [-180, -90],
-                  [180, -90],
-                  [180, 90],
-                  [-180, 90],
-                  [-180, -90],
-                ],
-              ],
-            } as unknown as GeometryObject,
-            properties: {},
-          },
-        ];
-        setWorldData(fallbackData);
-      }
-    };
-    loadWorldData();
+    fetch("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json")
+      .then((r) => r.json())
+      .then((world: WorldAtlasTopology) => {
+        setWorldData(feature(world, world.objects.countries).features as GeoFeature[]);
+      })
+      .catch(console.error);
   }, []);
 
   useEffect(() => {
     if (!autoRotate || !isVisible || isDragging || rotateCities.length > 0) {
-      if (animationFrame.current) {
-        cancelAnimationFrame(animationFrame.current);
-        animationFrame.current = null;
-      }
+      if (animationFrame.current) cancelAnimationFrame(animationFrame.current);
       return;
     }
-
     const rotate = () => {
-      setRotation((prev) => [(prev[0] + autoRotateSpeed) % 360, prev[1]]);
+      setRotation((p) => [(p[0] + autoRotateSpeed) % 360, p[1]]);
       animationFrame.current = requestAnimationFrame(rotate);
     };
-
     animationFrame.current = requestAnimationFrame(rotate);
-
-    return () => {
-      if (animationFrame.current) {
-        cancelAnimationFrame(animationFrame.current);
-      }
-    };
+    return () => { if (animationFrame.current) cancelAnimationFrame(animationFrame.current); };
   }, [autoRotate, autoRotateSpeed, isVisible, isDragging, rotateCities.length]);
 
-  const animateRotationTo = useCallback(
-    (target: [number, number], duration = 1200) => {
-      if (rotationAnimFrame.current) {
-        cancelAnimationFrame(rotationAnimFrame.current);
-      }
-
-      rotationFrom.current = rotationRef.current;
-      rotationTo.current = target;
-      rotationStartTime.current = performance.now();
-
-      const animate = (time: number) => {
-        const elapsed = time - (rotationStartTime.current || 0);
-        const t = Math.min(elapsed / duration, 1);
-
-        const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-
-        const lon =
-          rotationFrom.current[0] +
-          (rotationTo.current[0] - rotationFrom.current[0]) * eased;
-
-        const lat =
-          rotationFrom.current[1] +
-          (rotationTo.current[1] - rotationFrom.current[1]) * eased;
-
-        setRotation([lon, lat]);
-
-        if (t < 1) {
-          rotationAnimFrame.current = requestAnimationFrame(animate);
-        }
-      };
-
-      rotationAnimFrame.current = requestAnimationFrame(animate);
-    },
-    [],
-  );
+  const animateRotationTo = useCallback((target: [number, number], duration = 1200) => {
+    if (rotationAnimFrame.current) cancelAnimationFrame(rotationAnimFrame.current);
+    rotationFrom.current = rotationRef.current;
+    rotationTo.current = target;
+    rotationStartTime.current = performance.now();
+    const animate = (time: number) => {
+      const t = Math.min((time - (rotationStartTime.current || 0)) / duration, 1);
+      const e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      setRotation([
+        rotationFrom.current[0] + (rotationTo.current[0] - rotationFrom.current[0]) * e,
+        rotationFrom.current[1] + (rotationTo.current[1] - rotationFrom.current[1]) * e,
+      ]);
+      if (t < 1) rotationAnimFrame.current = requestAnimationFrame(animate);
+    };
+    rotationAnimFrame.current = requestAnimationFrame(animate);
+  }, []);
 
   useEffect(() => {
-    if (rotateCities.length === 0 || !isVisible) return;
-
-    const rotateToNextCity = () => {
-      const nextIndex = (currentCityIndex + 1) % rotateCities.length;
-      const city = rotateCities[nextIndex].toLowerCase();
-      const coordinates = cityCoordinates[city];
-
-      if (coordinates) {
-        animateRotationTo(
-          [-coordinates[1], -coordinates[0]],
-          rotationSpeed * 0.6,
-        );
-        setCurrentCityIndex(nextIndex);
-      }
+    if (!rotateCities.length || !isVisible) return;
+    const go = (idx: number) => {
+      const coords = cityCoordinates[rotateCities[idx].toLowerCase()];
+      if (coords) animateRotationTo([-coords[1], -coords[0]], rotationSpeed * 0.6);
     };
+    go(currentCityIndex);
+    rotationInterval.current = setInterval(() => {
+      setCurrentCityIndex((i) => {
+        const next = (i + 1) % rotateCities.length;
+        go(next);
+        return next;
+      });
+    }, rotationSpeed);
+    return () => { if (rotationInterval.current) clearInterval(rotationInterval.current); };
+  }, [rotateCities, isVisible, rotationSpeed, animateRotationTo]);
 
-    const city = rotateCities[currentCityIndex].toLowerCase();
-    const coordinates = cityCoordinates[city];
-
-    if (coordinates) {
-      animateRotationTo(
-        [-coordinates[1], -coordinates[0]],
-        rotationSpeed * 0.6,
-      );
-    }
-
-    rotationInterval.current = setInterval(rotateToNextCity, rotationSpeed);
-
-    return () => {
-      if (rotationInterval.current) clearInterval(rotationInterval.current);
-    };
-  }, [
-    rotateCities,
-    currentCityIndex,
-    rotationSpeed,
-    isVisible,
-    animateRotationTo,
-  ]);
-
-  useEffect(() => {
-    if (!rotateToLocation) return;
-
-    let coordinates: [number, number];
-    if (typeof rotateToLocation === "string") {
-      const city = rotateToLocation.toLowerCase();
-      coordinates = cityCoordinates[city] || [0, 0];
-    } else {
-      coordinates = rotateToLocation;
-    }
-
-    setRotation([-coordinates[1], -coordinates[0]]);
-  }, [rotateToLocation]);
-
-  const handleMouseDown = (event: React.MouseEvent) => {
+  // Mouse / touch handlers
+  const startDrag = (x: number, y: number) => {
     if (!enableInteraction) return;
     setIsDragging(true);
     const rect = svgRef.current?.getBoundingClientRect();
-    if (rect) {
-      setLastMouse([event.clientX - rect.left, event.clientY - rect.top]);
-    }
+    if (rect) setLastMouse([x - rect.left, y - rect.top]);
   };
-
-  const handleMouseMove = (event: React.MouseEvent) => {
+  const moveDrag = (x: number, y: number) => {
     if (!isDragging || !enableInteraction) return;
     const rect = svgRef.current?.getBoundingClientRect();
     if (!rect) return;
-
-    const currentMouse = [event.clientX - rect.left, event.clientY - rect.top];
-    const dx = currentMouse[0] - lastMouse[0];
-    const dy = currentMouse[1] - lastMouse[1];
-
-    const t = progress / 100;
-    let sensitivity = variant === "wireframe" ? (t < 0.5 ? 0.5 : 0.25) : 0.5;
-
-    setRotation((prev) => [
-      prev[0] + dx * sensitivity,
-      Math.max(-90, Math.min(90, prev[1] - dy * sensitivity)),
-    ]);
-
-    setLastMouse(currentMouse);
+    const dx = (x - rect.left) - lastMouse[0];
+    const dy = (y - rect.top) - lastMouse[1];
+    setRotation((p) => [p[0] + dx * 0.4, Math.max(-90, Math.min(90, p[1] - dy * 0.4))]);
+    setLastMouse([x - rect.left, y - rect.top]);
   };
+  const endDrag = () => setIsDragging(false);
 
-  const handleTouchStart = (event: React.TouchEvent) => {
-    if (!enableInteraction || event.touches.length === 0) return;
-    setIsDragging(true);
-    const touch = event.touches[0];
-    const rect = svgRef.current?.getBoundingClientRect();
-    if (rect) {
-      setLastMouse([touch.clientX - rect.left, touch.clientY - rect.top]);
-    }
-  };
-
-  const handleTouchMove = (event: React.TouchEvent) => {
-    if (!isDragging || !enableInteraction || event.touches.length === 0) return;
-    const touch = event.touches[0];
-    const rect = svgRef.current?.getBoundingClientRect();
-    if (!rect) return;
-
-    const currentMouse = [touch.clientX - rect.left, touch.clientY - rect.top];
-    const dx = currentMouse[0] - lastMouse[0];
-    const dy = currentMouse[1] - lastMouse[1];
-
-    setRotation((prev) => [
-      prev[0] + dx * 0.4,
-      Math.max(-90, Math.min(90, prev[1] - dy * 0.4)),
-    ]);
-
-    setLastMouse(currentMouse);
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseLeave = () => {
-    setIsDragging(false);
-  };
-
+  // Render globe via D3
   useEffect(() => {
-    if (!svgRef.current || worldData.length === 0 || !isVisible) return;
-    if (useResponsive && dimensions.width === 0) return;
+    if (!svgRef.current || !worldData.length || !isVisible) return;
+    if (useResponsive && !dimensions.width) return;
 
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
-    let finalCountryFill = "none";
-    let finalStrokeWidth = strokeWidth;
-    let finalOpacity = 1.0;
-    let renderGraticule = showGraticule;
-    let finalGraticuleOpacity = graticuleOpacity;
-    let finalSphereOutlineWidth = sphereOutlineWidth;
-
-    if (variant === "wireframe") {
-      finalCountryFill = "none";
-      finalStrokeWidth = strokeWidth;
-      finalOpacity = 1.0;
-      renderGraticule = showGraticule;
-      finalGraticuleOpacity = graticuleOpacity;
-      finalSphereOutlineWidth = sphereOutlineWidth;
-    } else if (variant === "wireframesolid") {
-      finalCountryFill = "none";
-      finalStrokeWidth = strokeWidth;
-      finalOpacity = 1.0;
-      renderGraticule = false;
-      finalGraticuleOpacity = 0;
-      finalSphereOutlineWidth = 1.5;
-    } else if (variant === "solid") {
-      finalCountryFill = defaultCountryFillColor;
-      finalStrokeWidth = strokeWidth * 0.5;
-      finalOpacity = 0.3;
-      renderGraticule = false;
-      finalGraticuleOpacity = 0;
-      finalSphereOutlineWidth = 1.5;
+    if (defaultBg !== "transparent") {
+      const r = (Math.min(finalWidth, finalHeight) / 2) * scale * 0.9;
+      svg.append("circle").attr("cx", finalWidth / 2).attr("cy", finalHeight / 2).attr("r", r).attr("fill", defaultBg);
     }
 
-    if (defaultBackgroundColor !== "transparent") {
-      const radius = (Math.min(finalWidth, finalHeight) / 2) * scale * 0.9;
-      svg
-        .append("circle")
-        .attr("cx", finalWidth / 2)
-        .attr("cy", finalHeight / 2)
-        .attr("r", radius)
-        .attr("fill", defaultBackgroundColor);
+    const projection = d3
+      .geoOrthographic()
+      .scale((Math.min(finalWidth, finalHeight) / 2) * scale * 0.9)
+      .translate([finalWidth / 2, finalHeight / 2])
+      .rotate([rotation[0], rotation[1]])
+      .precision(0.1);
+    const path = d3.geoPath().projection(projection);
+
+    if (showGraticule && graticuleOpacity > 0) {
+      const g = d3.geoGraticule();
+      const gp = path(g());
+      if (gp) svg.append("path").datum(g()).attr("d", gp).attr("fill", "none").attr("stroke", graticuleColor).attr("stroke-width", 1).attr("opacity", graticuleOpacity);
     }
 
-    let projection: d3.GeoProjection | CustomProjection;
-    const path = d3.geoPath();
-
-    if (variant === "wireframe") {
-      const t = progress / 100;
-      const alpha = Math.pow(t, 0.5);
-
-      const baseScale = Math.min(finalWidth, finalHeight) / 2;
-      const scaleRange = d3
-        .scaleLinear()
-        .domain([0, 1])
-        .range([baseScale * 0.9 * scale, baseScale * 0.54 * scale]);
-      const baseRotate = d3.scaleLinear().domain([0, 1]).range([0, 0]);
-
-      projection = interpolateProjection(orthographicRaw, equirectangularRaw)
-        .scale(scaleRange(alpha))
-        .translate([finalWidth / 2, finalHeight / 2])
-        .rotate([baseRotate(alpha) + rotation[0], rotation[1]])
-        .precision(0.1);
-
-      (projection as CustomProjection).alpha(alpha);
-      path.projection(projection);
-    } else {
-      projection = d3
-        .geoOrthographic()
-        .scale((Math.min(finalWidth, finalHeight) / 2) * scale * 0.9)
-        .translate([finalWidth / 2, finalHeight / 2])
-        .rotate([rotation[0], rotation[1]])
-        .precision(0.1);
-
-      path.projection(projection);
-    }
-
-    if (renderGraticule && finalGraticuleOpacity > 0) {
-      try {
-        const graticule = d3.geoGraticule();
-        const graticulePath = path(graticule());
-        if (graticulePath) {
-          svg
-            .append("path")
-            .datum(graticule())
-            .attr("d", graticulePath)
-            .attr("fill", "none")
-            .attr("stroke", defaultGraticuleColor)
-            .attr("stroke-width", 1)
-            .attr("opacity", finalGraticuleOpacity);
-        }
-      } catch (error) {
-        console.error("Error creating graticule:", error);
-      }
-    }
-
-    svg
-      .selectAll(".country")
+    svg.selectAll(".country")
       .data(worldData)
       .enter()
       .append("path")
       .attr("class", "country")
-      .attr("d", (d: GeoFeature) => {
+      .attr("d", (d) => {
         try {
-          const pathString = path(d as unknown as GeoPermissibleObjects);
-          if (!pathString) return "";
-          if (
-            typeof pathString === "string" &&
-            (pathString.includes("NaN") || pathString.includes("Infinity"))
-          ) {
-            return "";
-          }
-          return pathString;
-        } catch {
-          return "";
-        }
+          const ps = path(d as unknown as GeoPermissibleObjects);
+          if (!ps || ps.includes("NaN") || ps.includes("Infinity")) return "";
+          return ps;
+        } catch { return ""; }
       })
-      .attr("fill", finalCountryFill)
-      .attr("stroke", defaultStrokeColor)
-      .attr("stroke-width", finalStrokeWidth)
-      .attr("opacity", finalOpacity)
+      .attr("fill", "none")
+      .attr("stroke", strokeColor)
+      .attr("stroke-width", strokeWidth)
       .style("visibility", function (this: SVGPathElement) {
-        const pathData = d3.select(this).attr("d");
-        return pathData && pathData.length > 0 && !pathData.includes("NaN")
-          ? "visible"
-          : "hidden";
-      })
-      .on("mouseenter", function (this: SVGPathElement) {
-        if (countryHoverColor && variant === "solid") {
-          d3.select(this).attr("fill", countryHoverColor);
-        }
-      })
-      .on("mouseleave", function (this: SVGPathElement) {
-        if (variant === "solid") {
-          d3.select(this).attr("fill", finalCountryFill);
-        }
+        const pd = d3.select(this).attr("d");
+        return pd && pd.length > 0 && !pd.includes("NaN") ? "visible" : "hidden";
       });
 
-    try {
-      const sphereOutline = path({ type: "Sphere" });
-      if (sphereOutline) {
-        svg
-          .append("path")
-          .datum({ type: "Sphere" })
-          .attr("d", sphereOutline)
-          .attr("fill", "none")
-          .attr("stroke", defaultSphereOutlineColor)
-          .attr("stroke-width", finalSphereOutlineWidth)
-          .attr("opacity", variant === "wireframe" ? 1.0 : 0.8);
-      }
-    } catch (error) {
-      console.error("Error creating sphere outline:", error);
+    const sp = path({ type: "Sphere" });
+    if (sp) {
+      svg.append("path").datum({ type: "Sphere" }).attr("d", sp).attr("fill", "none").attr("stroke", sphereOutlineColor).attr("stroke-width", sphereOutlineWidth).attr("opacity", 0.8);
     }
-  }, [
-    worldData,
-    progress,
-    rotation,
-    isVisible,
-    finalWidth,
-    finalHeight,
-    defaultStrokeColor,
-    strokeWidth,
-    defaultGraticuleColor,
-    graticuleOpacity,
-    defaultSphereOutlineColor,
-    sphereOutlineWidth,
-    showGraticule,
-    defaultCountryFillColor,
-    countryHoverColor,
-    variant,
-    scale,
-    defaultBackgroundColor,
-    useResponsive,
-    dimensions.width,
-  ]);
+  }, [worldData, rotation, isVisible, finalWidth, finalHeight, strokeColor, strokeWidth, graticuleColor, graticuleOpacity, sphereOutlineColor, sphereOutlineWidth, showGraticule, scale, defaultBg, useResponsive, dimensions.width]);
 
   return (
     <div ref={containerRef} className={`relative ${className}`}>
@@ -646,24 +301,16 @@ function GlobeWireframe({
         ref={svgRef}
         width={finalWidth}
         height={finalHeight}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleMouseUp}
-        className={
-          useResponsive
-            ? "w-full h-full opacity-0 transition-opacity duration-1000"
-            : ""
-        }
+        onMouseDown={(e) => startDrag(e.clientX, e.clientY)}
+        onMouseMove={(e) => moveDrag(e.clientX, e.clientY)}
+        onMouseUp={endDrag}
+        onMouseLeave={endDrag}
+        onTouchStart={(e) => { if (e.touches[0]) startDrag(e.touches[0].clientX, e.touches[0].clientY); }}
+        onTouchMove={(e) => { if (e.touches[0]) moveDrag(e.touches[0].clientX, e.touches[0].clientY); }}
+        onTouchEnd={endDrag}
+        className={useResponsive ? "w-full h-full transition-opacity duration-1000" : ""}
         style={{
-          cursor: enableInteraction
-            ? isDragging
-              ? "grabbing"
-              : "grab"
-            : "default",
+          cursor: enableInteraction ? (isDragging ? "grabbing" : "grab") : "default",
           opacity: useResponsive ? (dimensions.width > 0 ? 1 : 0) : 1,
         }}
       />
@@ -671,51 +318,38 @@ function GlobeWireframe({
   );
 }
 
+// ─── Dot Separator ────────────────────────────────────────────────────────────
 const FormDots = React.forwardRef<
   React.ComponentRef<typeof SeparatorPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof SeparatorPrimitive.Root>
->(
-  (
-    { className, orientation = "horizontal", decorative = true, ...props },
-    ref,
-  ) => {
-    const isHorizontal = orientation === "horizontal";
-    return (
-      <SeparatorPrimitive.Root
-        ref={ref}
-        decorative={decorative}
-        orientation={orientation}
-        className={cn(
-          "shrink-0 flex items-center justify-center overflow-hidden",
-          isHorizontal ? "w-full" : "h-full",
-          className,
-        )}
-        {...props}
-      >
+>(({ className, orientation = "horizontal", decorative = true, ...props }, ref) => {
+  const isH = orientation === "horizontal";
+  return (
+    <SeparatorPrimitive.Root
+      ref={ref}
+      decorative={decorative}
+      orientation={orientation}
+      className={cn("shrink-0 flex items-center justify-center overflow-hidden", isH ? "w-full" : "h-full", className)}
+      {...props}
+    >
+      <div className={cn("relative", isH ? "w-full h-4" : "h-full w-4")}>
         <div
-          className={cn("relative", isHorizontal ? "w-full h-4" : "h-full w-4")}
-        >
-          <div
-            className={cn(
-              "absolute inset-0 bg-repeat",
-              "text-neutral-400 dark:text-white/20",
-            )}
-            style={{
-              backgroundImage:
-                "radial-gradient(circle, currentColor 0.8px, transparent 0.8px)",
-              backgroundSize: isHorizontal ? "6px 100%" : "100% 6px",
-              maskImage: isHorizontal
-                ? "linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)"
-                : "linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)",
-            }}
-          />
-        </div>
-      </SeparatorPrimitive.Root>
-    );
-  },
-);
+          className="absolute inset-0 bg-repeat text-zinc-600"
+          style={{
+            backgroundImage: "radial-gradient(circle, currentColor 0.8px, transparent 0.8px)",
+            backgroundSize: isH ? "6px 100%" : "100% 6px",
+            maskImage: isH
+              ? "linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)"
+              : "linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)",
+          }}
+        />
+      </div>
+    </SeparatorPrimitive.Root>
+  );
+});
 FormDots.displayName = "FormDots";
 
+// ─── Main Contact Component ───────────────────────────────────────────────────
 interface ContactWithGlobeProps {
   title?: string;
   subtitle?: string;
@@ -728,10 +362,9 @@ interface ContactWithGlobeProps {
 export default function ContactWithGlobe({
   title = "Contact us",
   subtitle = "SkillFlow Learning",
-  description = "We are always here to help you build real-world skills and complete your certification. Reach out with any questions.",
+  description = "We are always here to help. Reach out with any questions about courses, certifications, or registrations.",
   className,
   onBack,
-  isFullPage = false,
 }: ContactWithGlobeProps) {
   const [formData, setFormData] = useState({
     name: "",
@@ -740,103 +373,80 @@ export default function ContactWithGlobe({
     collegeName: "",
     message: "",
   });
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
     try {
       await fetch("https://formsubmit.co/ajax/support@skillflowlearn.com", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
           NAME: formData.name,
           "Contact No": formData.contactNo,
           "College Email ID": formData.collegeEmail,
           "College Name": formData.collegeName,
-          Message: formData.message || "Interested in SkillFlow Learning",
-          _subject: `New Lead: ${formData.name} - SkillFlow Contact Page`,
+          Message: formData.message || "—",
+          _subject: `New Lead: ${formData.name} — SkillFlow Contact`,
           _template: "table",
           _captcha: "false",
         }),
       });
     } catch (err) {
-      console.error("Submission error:", err);
+      console.error(err);
     } finally {
       setIsSubmitting(false);
       setIsSubmitted(true);
     }
   };
 
+  // Shared dark input class matching the reference screenshot
+  const inputCls =
+    "w-full bg-zinc-800/60 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-500 outline-none focus:border-zinc-500 focus:ring-2 focus:ring-zinc-500/20 transition-all duration-200";
+
   return (
     <section
       className={cn(
-        "relative w-full min-h-screen bg-[#0B0F19] text-white overflow-x-hidden py-10 sm:py-16 px-4 sm:px-6 lg:px-8",
+        "relative w-full min-h-screen bg-zinc-950 text-white overflow-x-hidden py-10 sm:py-16 px-4 sm:px-6 lg:px-8",
         className,
       )}
     >
-      {/* Background radial gradient glow */}
+      {/* Subtle top glow */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-blue-600/10 blur-[120px] rounded-full" />
+        <div className="absolute -top-60 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-blue-700/8 blur-[140px] rounded-full" />
       </div>
 
       <div className="relative mx-auto max-w-7xl">
-        {/* Navigation / Back Bar */}
-        <div className="flex items-center justify-between mb-8 sm:mb-12">
-          {onBack ? (
+
+        {/* Back button */}
+        {onBack && (
+          <div className="mb-8 sm:mb-10">
             <button
               onClick={onBack}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-sm font-medium text-slate-200 transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-800/60 border border-zinc-700 hover:bg-zinc-700/60 hover:border-zinc-600 text-sm font-medium text-zinc-300 hover:text-white transition-all cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Back to Home</span>
+              Back to Home
             </button>
-          ) : (
-            <a
-              href="/"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-sm font-medium text-slate-200 transition-all"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to Home</span>
-            </a>
-          )}
+          </div>
+        )}
 
-          {isFullPage && onBack && (
-            <button
-              onClick={onBack}
-              className="p-2 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
-              aria-label="Close"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
-        </div>
-
-        {/* Heading Section */}
+        {/* Heading */}
         <div className="flex flex-col items-center text-center gap-3 sm:gap-4 mb-10 sm:mb-14">
           <motion.div
             initial={{ opacity: 0, y: -12 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, ease: smoothEase }}
-            className="inline-flex items-center px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-400/30"
+            className="inline-flex items-center px-4 py-1.5 rounded-full bg-zinc-800 border border-zinc-700"
           >
-            <span className="text-xs sm:text-sm text-blue-400 font-semibold tracking-wide uppercase">
-              {subtitle}
-            </span>
+            <span className="text-xs sm:text-sm text-zinc-300 font-medium">{subtitle}</span>
           </motion.div>
 
           <motion.h2
@@ -844,7 +454,7 @@ export default function ContactWithGlobe({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.9, delay: 0.15, ease: smoothEase }}
-            className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white"
+            className="text-3xl sm:text-5xl lg:text-6xl font-bold text-white"
           >
             {title}
           </motion.h2>
@@ -854,15 +464,16 @@ export default function ContactWithGlobe({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.9, delay: 0.3, ease: smoothEase }}
-            className="text-sm sm:text-base text-slate-300 max-w-lg leading-relaxed"
+            className="text-sm sm:text-base text-zinc-400 max-w-md leading-relaxed"
           >
             {description}
           </motion.p>
         </div>
 
-        {/* Main Grid: Left side Globe & Links, Right side Contact Form */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 max-w-5xl mx-auto items-start">
-          {/* Left Column */}
+        {/* Two-column layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 max-w-5xl mx-auto items-start">
+
+          {/* ── Left: Get in touch + Globe ── */}
           <motion.div
             initial={{ opacity: 0, y: 28 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -871,15 +482,13 @@ export default function ContactWithGlobe({
             className="flex flex-col gap-6"
           >
             <div className="flex flex-col gap-1">
-              <h3 className="text-xl sm:text-2xl font-bold text-white">
-                Get in touch
-              </h3>
-              <p className="text-sm text-slate-400 leading-relaxed max-w-sm">
-                Reach out directly via Call, WhatsApp, or Email. Our team typically responds within a few hours.
+              <h3 className="text-xl font-semibold text-white">Get in touch</h3>
+              <p className="text-sm text-zinc-400 leading-relaxed max-w-xs">
+                Reach out via any channel below. We typically reply within one business day.
               </p>
             </div>
 
-            {/* Direct Contact Links */}
+            {/* Contact links */}
             <div className="flex flex-col gap-3">
               {CONTACT_LINKS.map(({ icon: Icon, label, href }, i) => (
                 <motion.a
@@ -890,103 +499,95 @@ export default function ContactWithGlobe({
                   initial={{ opacity: 0, x: -12 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
-                  transition={{
-                    duration: 0.5,
-                    delay: 0.3 + i * 0.1,
-                    ease: smoothEase,
-                  }}
-                  className="group flex items-center gap-3 w-fit text-sm text-slate-300 hover:text-white transition-colors duration-200"
+                  transition={{ duration: 0.5, delay: 0.3 + i * 0.1, ease: smoothEase }}
+                  className="group flex items-center gap-3 w-fit text-sm text-zinc-400 hover:text-white transition-colors duration-200"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700/80 group-hover:border-blue-400 group-hover:bg-blue-600/10 flex items-center justify-center shrink-0 transition-all duration-200">
-                    <Icon className="w-4 h-4 text-blue-400 group-hover:text-blue-300 transition-colors duration-200" />
+                  <div className="w-8 h-8 rounded-lg bg-zinc-800/80 border border-zinc-700 group-hover:border-zinc-500 group-hover:bg-zinc-700/60 flex items-center justify-center shrink-0 transition-all duration-200">
+                    <Icon className="w-3.5 h-3.5 text-zinc-400 group-hover:text-white transition-colors duration-200" />
                   </div>
-                  <span className="font-medium">{label}</span>
+                  {label}
                 </motion.a>
               ))}
             </div>
 
-            {/* Interactive Rotating Globe */}
-            <div className="relative overflow-hidden h-60 sm:h-72 rounded-2xl bg-gradient-to-b from-slate-900/60 to-transparent border border-slate-800 p-2">
+            {/* Globe */}
+            <div className="relative overflow-hidden h-52 sm:h-64">
               <GlobeWireframe
                 className="w-full aspect-square max-w-full absolute top-0 left-0"
                 variant="wireframesolid"
+                strokeColor="rgba(255,255,255,0.7)"
+                sphereOutlineColor="rgba(255,255,255,0.4)"
                 autoRotate
-                autoRotateSpeed={0.5}
-                strokeWidth={0.7}
-                strokeColor="#60a5fa"
-                sphereOutlineColor="#3b82f6"
-                graticuleOpacity={0.15}
-                graticuleColor="#93c5fd"
-                rotateCities={["mumbai", "new delhi", "bangalore", "dubai", "singapore", "london", "new york"]}
+                autoRotateSpeed={0.45}
+                strokeWidth={0.6}
+                showGraticule={false}
+                rotateCities={["new delhi", "mumbai", "dubai", "singapore", "london", "new york", "tokyo"]}
+                rotationSpeed={3000}
               />
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#0B0F19] to-transparent" />
-              <div className="absolute bottom-2 left-3 text-[11px] text-slate-400 pointer-events-none">
-                Interactive 3D Globe — drag or touch to rotate
-              </div>
+              {/* Fade-out gradient at bottom */}
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-zinc-950 to-transparent" />
             </div>
           </motion.div>
 
-          {/* Right Column: Contact Form */}
+          {/* ── Right: Contact Form ── */}
           <motion.div
             initial={{ opacity: 0, y: 28 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 1.0, delay: 0.35, ease: smoothEase }}
-            className="rounded-2xl border border-slate-800 bg-[#0F172A]/90 backdrop-blur-md p-6 sm:p-8 flex flex-col gap-5 shadow-2xl shadow-blue-950/20"
+            className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 sm:p-8 flex flex-col gap-5"
           >
             {isSubmitted ? (
-              /* Success Screen */
+              /* ── Success ── */
               <div className="text-center py-8 space-y-5">
                 <div className="w-16 h-16 mx-auto rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
                   <CheckCircle2 className="w-9 h-9 text-emerald-400" />
                 </div>
 
                 <div>
-                  <h3 className="text-2xl font-bold text-white mb-2">
-                    Message Sent Successfully!
-                  </h3>
-                  <p className="text-slate-300 text-sm max-w-sm mx-auto">
-                    Thank you, <span className="font-semibold text-white">{formData.name}</span>. Your details have been delivered to{" "}
-                    <span className="text-blue-400">support@skillflowlearn.com</span>.
+                  <h3 className="text-2xl font-bold text-white mb-2">Message Sent!</h3>
+                  <p className="text-zinc-400 text-sm max-w-sm mx-auto">
+                    Thanks, <span className="font-semibold text-white">{formData.name}</span>. We've received your
+                    details at{" "}
+                    <span className="text-zinc-300">support@skillflowlearn.com</span>.
                   </p>
                 </div>
 
-                {/* Helpline Banner */}
-                <div className="p-5 rounded-xl bg-blue-950/50 border border-blue-500/40 space-y-2">
-                  <p className="text-xs font-semibold tracking-wider uppercase text-blue-300">
-                    Any doubt contact this no:
+                <div className="p-5 rounded-xl bg-zinc-800 border border-zinc-700 space-y-2">
+                  <p className="text-xs font-semibold tracking-wider uppercase text-zinc-400">
+                    Any doubt? Contact this no:
                   </p>
                   <div className="flex items-center justify-center gap-2">
                     <Phone className="w-5 h-5 text-emerald-400 animate-pulse" />
                     <a
                       href="tel:6364656848"
-                      className="text-2xl sm:text-3xl font-extrabold text-white hover:text-blue-400 transition-colors tracking-wide"
+                      className="text-2xl sm:text-3xl font-extrabold text-white hover:text-zinc-300 transition-colors"
                     >
                       6364656848
                     </a>
                   </div>
-                  <p className="text-xs text-slate-400">Available on Call &amp; WhatsApp</p>
+                  <p className="text-xs text-zinc-500">Available on Call &amp; WhatsApp</p>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <a
                     href="tel:6364656848"
-                    className="w-full sm:flex-1 py-3 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-colors text-sm text-center"
+                    className="flex-1 py-3 rounded-xl font-semibold bg-zinc-700 hover:bg-zinc-600 text-white transition-colors text-sm text-center"
                   >
-                    Call Helpline
+                    Call Now
                   </a>
                   <a
                     href="https://wa.me/916364656848"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full sm:flex-1 py-3 rounded-xl font-semibold bg-white/10 hover:bg-white/20 text-white transition-colors text-sm text-center"
+                    className="flex-1 py-3 rounded-xl font-semibold bg-zinc-700 hover:bg-zinc-600 text-white transition-colors text-sm text-center"
                   >
-                    WhatsApp Chat
+                    WhatsApp
                   </a>
                   {onBack && (
                     <button
                       onClick={onBack}
-                      className="w-full sm:w-auto px-6 py-3 rounded-xl font-semibold bg-blue-600 hover:bg-blue-500 text-white transition-colors text-sm cursor-pointer"
+                      className="flex-1 py-3 rounded-xl font-semibold bg-white text-zinc-900 hover:bg-zinc-100 transition-colors text-sm cursor-pointer"
                     >
                       Done
                     </button>
@@ -994,24 +595,22 @@ export default function ContactWithGlobe({
                 </div>
               </div>
             ) : (
-              /* Contact Form */
+              /* ── Form ── */
               <>
                 <div>
-                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-0.5">
-                    Send a message
-                  </h3>
-                  <p className="text-xs sm:text-sm text-slate-400">
-                    Fill out the form and our counselors will get back to you promptly.
+                  <h3 className="text-lg font-semibold text-white mb-0.5">Send a message</h3>
+                  <p className="text-sm text-zinc-500">
+                    Fill out the form and we'll get back to you promptly.
                   </p>
                 </div>
 
                 <FormDots />
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                  {/* Name + Contact No */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Full Name */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold tracking-wider uppercase text-slate-300">
+                    <div className="flex flex-col gap-2">
+                      <label className="text-xs font-semibold tracking-widest uppercase text-zinc-500">
                         Full Name <span className="text-rose-500">*</span>
                       </label>
                       <input
@@ -1020,14 +619,12 @@ export default function ContactWithGlobe({
                         required
                         value={formData.name}
                         onChange={handleChange}
-                        placeholder="e.g. Rahul Sharma"
-                        className="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
+                        placeholder="Rahul Sharma"
+                        className={inputCls}
                       />
                     </div>
-
-                    {/* Contact No */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold tracking-wider uppercase text-slate-300">
+                    <div className="flex flex-col gap-2">
+                      <label className="text-xs font-semibold tracking-widest uppercase text-zinc-500">
                         Contact No <span className="text-rose-500">*</span>
                       </label>
                       <input
@@ -1035,73 +632,71 @@ export default function ContactWithGlobe({
                         name="contactNo"
                         required
                         pattern="[0-9]{10}"
-                        title="Please enter a valid 10-digit mobile number"
+                        title="Enter a valid 10-digit number"
                         value={formData.contactNo}
                         onChange={handleChange}
-                        placeholder="10-digit mobile number"
-                        className="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
+                        placeholder="10-digit mobile"
+                        className={inputCls}
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* College Email ID */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold tracking-wider uppercase text-slate-300">
-                        College Email ID <span className="text-rose-500">*</span>
-                      </label>
-                      <input
-                        type="email"
-                        name="collegeEmail"
-                        required
-                        value={formData.collegeEmail}
-                        onChange={handleChange}
-                        placeholder="yourname@college.edu"
-                        className="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
-                      />
-                    </div>
-
-                    {/* College Name */}
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold tracking-wider uppercase text-slate-300">
-                        College Name <span className="text-rose-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="collegeName"
-                        required
-                        value={formData.collegeName}
-                        onChange={handleChange}
-                        placeholder="e.g. NIT / IIT / State University"
-                        className="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200"
-                      />
-                    </div>
+                  {/* College Email */}
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold tracking-widest uppercase text-zinc-500">
+                      College Email ID <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      name="collegeEmail"
+                      required
+                      value={formData.collegeEmail}
+                      onChange={handleChange}
+                      placeholder="yourname@college.edu"
+                      className={inputCls}
+                    />
                   </div>
 
-                  {/* Optional Message */}
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold tracking-wider uppercase text-slate-300">
-                      Message / Any Question (Optional)
+                  {/* College Name */}
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold tracking-widest uppercase text-zinc-500">
+                      College Name <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="collegeName"
+                      required
+                      value={formData.collegeName}
+                      onChange={handleChange}
+                      placeholder="NIT / IIT / State University"
+                      className={inputCls}
+                    />
+                  </div>
+
+                  {/* Message */}
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold tracking-widest uppercase text-zinc-500">
+                      Message
                     </label>
                     <textarea
                       name="message"
-                      rows={3}
+                      rows={4}
                       value={formData.message}
                       onChange={handleChange}
-                      placeholder="Tell us what course or query you have..."
-                      className="w-full bg-slate-900/80 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 resize-none transition-all duration-200"
+                      placeholder="Type your message here"
+                      className={cn(inputCls, "resize-none")}
                     />
                   </div>
 
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full sm:w-fit h-11 px-8 rounded-xl font-semibold text-sm bg-blue-600 hover:bg-blue-500 text-white group cursor-pointer transition-all duration-200 shadow-lg shadow-blue-600/30 disabled:opacity-60"
+                    className="w-fit h-11 px-8 rounded-xl font-semibold text-sm bg-white hover:bg-zinc-100 text-zinc-900 group cursor-pointer transition-all duration-200 shadow-lg disabled:opacity-60"
                   >
                     {isSubmitting ? (
                       <span className="flex items-center gap-2">
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        Submitting...
+                        Submitting…
                       </span>
                     ) : (
                       <span className="flex items-center gap-2">
