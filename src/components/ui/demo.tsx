@@ -1,5 +1,5 @@
-import Component from "@/components/ui/landing-page";
+import ContactWithGlobe from "@/components/ui/contact-with-globe";
 
-export default function DemoOne() {
-  return <Component />;
+export default function ContactWithGlobeDemo() {
+  return <ContactWithGlobe />;
 }

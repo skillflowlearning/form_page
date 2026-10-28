@@ -1,12 +1,34 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import FlowArt, { FlowSection } from '@/components/ui/story-scroll';
 import logoImg from '@/assets/image/logo_cropped.png';
 import frontImg from '@/assets/image/frontimage_cropped.png';
 import { Award, CheckCircle, Code, Sparkles, ArrowRight, BookOpen, Layers } from 'lucide-react';
-import { ContactModal } from '@/components/ui/contact-modal';
+import ContactWithGlobe from '@/components/ui/contact-with-globe';
 
 export default function SkillFlowLanding() {
-  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [showContactPage, setShowContactPage] = useState(false);
+
+  useEffect(() => {
+    const handleHash = () => {
+      setShowContactPage(window.location.hash === '#contact');
+    };
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
+
+  const openContact = () => {
+    window.location.hash = 'contact';
+    setShowContactPage(true);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
+  const closeContact = () => {
+    setShowContactPage(false);
+    if (window.location.hash === '#contact') {
+      window.history.pushState(null, '', window.location.pathname);
+    }
+  };
 
   const goToForm = () => {
     alert("Thank you for your interest! The registration form will open shortly.");
@@ -20,6 +42,10 @@ export default function SkillFlowLanding() {
       window.scrollTo({ top: window.innerHeight, behavior: "smooth" });
     }
   };
+
+  if (showContactPage) {
+    return <ContactWithGlobe onBack={closeContact} isFullPage={true} />;
+  }
 
   return (
     <FlowArt aria-label="SkillFlowLearn Journey">
@@ -52,7 +78,7 @@ export default function SkillFlowLanding() {
                 Home
               </a>
               <button
-                onClick={() => setIsContactModalOpen(true)}
+                onClick={openContact}
                 className="font-['Rubik'] font-normal text-[13px] sm:text-[15px] md:text-[17px] leading-tight text-white hover:text-blue-400 transition-colors cursor-pointer inline-flex items-center py-1 whitespace-nowrap"
               >
                 Contact us
@@ -363,7 +389,7 @@ export default function SkillFlowLanding() {
               Fill The Form
             </button>
             <button
-              onClick={() => setIsContactModalOpen(true)}
+              onClick={openContact}
               className="px-8 py-3.5 rounded-xl font-medium border border-white/30 bg-white/10 hover:bg-white/20 text-white transition-all duration-200 cursor-pointer text-center"
             >
               Talk To Us
@@ -371,12 +397,6 @@ export default function SkillFlowLanding() {
           </div>
         </div>
       </FlowSection>
-
-      {/* Contact Us Modal */}
-      <ContactModal
-        isOpen={isContactModalOpen}
-        onClose={() => setIsContactModalOpen(false)}
-      />
     </FlowArt>
   );
 }
