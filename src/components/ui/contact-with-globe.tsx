@@ -619,7 +619,7 @@ export default function ContactWithGlobe({
                         required
                         value={formData.name}
                         onChange={handleChange}
-                        placeholder="Rahul Sharma"
+                        placeholder=""
                         className={inputCls}
                       />
                     </div>
@@ -635,7 +635,7 @@ export default function ContactWithGlobe({
                         title="Enter a valid 10-digit number"
                         value={formData.contactNo}
                         onChange={handleChange}
-                        placeholder="10-digit mobile"
+                        placeholder=""
                         className={inputCls}
                       />
                     </div>
@@ -652,7 +652,7 @@ export default function ContactWithGlobe({
                       required
                       value={formData.collegeEmail}
                       onChange={handleChange}
-                      placeholder="yourname@college.edu"
+                      placeholder=""
                       className={inputCls}
                     />
                   </div>
@@ -668,7 +668,7 @@ export default function ContactWithGlobe({
                       required
                       value={formData.collegeName}
                       onChange={handleChange}
-                      placeholder="NIT / IIT / State University"
+                      placeholder=""
                       className={inputCls}
                     />
                   </div>
@@ -683,7 +683,7 @@ export default function ContactWithGlobe({
                       rows={4}
                       value={formData.message}
                       onChange={handleChange}
-                      placeholder="Type your message here"
+                      placeholder=""
                       className={cn(inputCls, "resize-none")}
                     />
                   </div>
