@@ -2,7 +2,21 @@ import { useState, useEffect } from 'react';
 import FlowArt, { FlowSection } from '@/components/ui/story-scroll';
 import logoImg from '@/assets/image/logo_cropped.png';
 import frontImg from '@/assets/image/frontimage_cropped.png';
-import { Award, CheckCircle, Code, Sparkles, ArrowRight, BookOpen, Layers } from 'lucide-react';
+import {
+  Award,
+  CheckCircle,
+  Code,
+  Sparkles,
+  ArrowRight,
+  BookOpen,
+  Layers,
+  Compass,
+  Clock,
+  Briefcase,
+  UserCheck,
+  FileText,
+  FileCheck,
+} from 'lucide-react';
 import ContactWithGlobe from '@/components/ui/contact-with-globe';
 
 export default function SkillFlowLanding() {
@@ -143,7 +157,7 @@ export default function SkillFlowLanding() {
 
           {/* Bottom indicator */}
           <div className="relative z-20 pb-2 sm:pb-4 text-[10px] sm:text-sm text-slate-400 font-light flex items-center gap-1.5 sm:gap-2">
-            <span>Scroll down to explore the 4 steps</span>
+            <span>Scroll down to explore the 5 steps</span>
             <span className="animate-bounce">↓</span>
           </div>
         </div>
@@ -151,29 +165,29 @@ export default function SkillFlowLanding() {
 
       {/* 02 — STEP 1 */}
       <FlowSection
-        aria-label="Step 1 - Basics"
+        aria-label="Step 1 - Before Training"
         style={{ backgroundColor: '#fd5200', color: '#ffffff' }}
       >
-        <p className="text-xs font-bold uppercase tracking-[0.2em]">01 — Step 1: Foundation</p>
+        <p className="text-xs font-bold uppercase tracking-[0.2em]">01 — Step 1: Before Training</p>
         <hr className="my-3 border-none border-t border-black/30" />
 
         <div>
           <p className="text-sm font-semibold tracking-wider uppercase opacity-90 mb-1">
-            We Teach It The Easy Way
+            No Prior Experience Required
           </p>
           <h2 className="text-[clamp(3rem,10vw,11rem)] font-bold leading-[0.92] uppercase tracking-tight">
-            Start
+            Before
             <br />
-            With The
+            Training
             <br />
-            Basics
+            Begins
           </h2>
         </div>
 
         <hr className="my-3 border-none border-t border-black/30" />
 
-        <p className="max-w-[52ch] text-[clamp(1.05rem,2.2vw,1.85rem)] font-normal leading-relaxed">
-          In the first step we explain every concept from scratch. Simple language, live examples and doubt support help you build an unbreakable foundation.
+        <p className="max-w-[55ch] text-[clamp(1.05rem,2.2vw,1.85rem)] font-normal leading-relaxed">
+          Zero prior background needed. Whether you are from a non-tech stream or starting from absolute scratch, we guide you through domain selection and complete orientation before day one.
         </p>
 
         <hr className="my-3 border-none border-t border-black/30" />
@@ -181,29 +195,29 @@ export default function SkillFlowLanding() {
         <div className="flex flex-wrap gap-[3vw]">
           <div className="p-4 rounded-xl bg-black/10 backdrop-blur-sm flex-1 min-w-[200px]">
             <div className="flex items-center gap-1.5 mb-1">
-              <BookOpen className="w-4 h-4 shrink-0" />
-              <p className="text-sm font-bold uppercase tracking-wider">Zero Jargon</p>
+              <Compass className="w-4 h-4 shrink-0" />
+              <p className="text-sm font-bold uppercase tracking-wider">Zero Prerequisites</p>
             </div>
             <p className="text-xs leading-relaxed opacity-90">
-              Clear, digestible explanations with interactive visual walkthroughs.
-            </p>
-          </div>
-          <div className="p-4 rounded-xl bg-black/10 backdrop-blur-sm flex-1 min-w-[200px]">
-            <div className="flex items-center gap-1.5 mb-1">
-              <Code className="w-4 h-4 shrink-0" />
-              <p className="text-sm font-bold uppercase tracking-wider">Live Examples</p>
-            </div>
-            <p className="text-xs leading-relaxed opacity-90">
-              Code along with real snippets rather than abstract formulas. Build muscle memory.
+              No prior coding background needed. Designed for beginners from all degree branches.
             </p>
           </div>
           <div className="p-4 rounded-xl bg-black/10 backdrop-blur-sm flex-1 min-w-[200px]">
             <div className="flex items-center gap-1.5 mb-1">
               <Sparkles className="w-4 h-4 shrink-0" />
-              <p className="text-sm font-bold uppercase tracking-wider">Doubt Support</p>
+              <p className="text-sm font-bold uppercase tracking-wider">Track Selection</p>
             </div>
             <p className="text-xs leading-relaxed opacity-90">
-              Never get stuck. Direct answers and guidance whenever you hit a roadblock.
+              1-on-1 counseling to choose the domain matching your strengths and career aspirations.
+            </p>
+          </div>
+          <div className="p-4 rounded-xl bg-black/10 backdrop-blur-sm flex-1 min-w-[200px]">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Code className="w-4 h-4 shrink-0" />
+              <p className="text-sm font-bold uppercase tracking-wider">Setup &amp; Onboarding</p>
+            </div>
+            <p className="text-xs leading-relaxed opacity-90">
+              Hands-on assistance for developer environment setup and instant LMS walk-through.
             </p>
           </div>
         </div>
@@ -211,52 +225,61 @@ export default function SkillFlowLanding() {
 
       {/* 03 — STEP 2 */}
       <FlowSection
-        aria-label="Step 2 - Deep Learning"
+        aria-label="Step 2 - Training"
         style={{ backgroundColor: '#090a0f', color: '#ffffff' }}
       >
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-400">
-          02 — Step 2: Mastery
+          02 — Step 2: Training
         </p>
         <hr className="my-3 border-none border-t border-white/20" />
 
         <div>
           <p className="text-sm font-semibold tracking-wider uppercase text-blue-300 mb-1">
-            Understand Every Concept In Depth
+            Self-Paced &amp; Mentor-Led Learning
           </p>
           <h2 className="text-[clamp(3rem,10vw,11rem)] font-bold leading-[0.92] uppercase tracking-tight">
-            Go
+            Master
             <br />
-            Deeper
+            Core
             <br />
-            Always
+            Skills
           </h2>
         </div>
 
         <hr className="my-3 border-none border-t border-white/20" />
 
-        <p className="max-w-[52ch] text-[clamp(1.05rem,2.2vw,1.85rem)] font-light leading-relaxed text-slate-200">
-          Now we build advanced topics on top of the basics. Each concept is studied in depth with practice questions and real-world cases, so you don&apos;t just memorize, you truly understand.
+        <p className="max-w-[55ch] text-[clamp(1.05rem,2.2vw,1.85rem)] font-light leading-relaxed text-slate-200">
+          Learn in a flexible hybrid format: self-paced premium video modules combined with live mentor-led doubt sessions, 24+ hours of content, and 6 months of LMS access.
         </p>
 
         <hr className="my-3 border-none border-t border-white/20" />
 
         <div className="flex flex-wrap gap-[3vw]">
           <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex-1 min-w-[200px]">
-            <p className="mb-1 text-sm font-bold uppercase tracking-wider text-blue-400">Architecture</p>
+            <div className="flex items-center gap-1.5 mb-1">
+              <BookOpen className="w-4 h-4 text-blue-400 shrink-0" />
+              <p className="text-sm font-bold uppercase tracking-wider text-blue-400">Self-Paced / Mentor-Led</p>
+            </div>
             <p className="text-xs leading-relaxed opacity-80">
-              Master state flows, performance bottlenecks, and scalable system patterns.
+              Learn at your own pace with scheduled live mentor sessions for doubt solving and guidance.
             </p>
           </div>
           <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex-1 min-w-[200px]">
-            <p className="mb-1 text-sm font-bold uppercase tracking-wider text-blue-400">Real Cases</p>
+            <div className="flex items-center gap-1.5 mb-1">
+              <Clock className="w-4 h-4 text-blue-400 shrink-0" />
+              <p className="text-sm font-bold uppercase tracking-wider text-blue-400">24+ Hours Content</p>
+            </div>
             <p className="text-xs leading-relaxed opacity-80">
-              Analyze production-grade architectures and solve genuine engineering challenges.
+              Curated, high-yield structured curriculum covering modern frameworks and production workflows.
             </p>
           </div>
           <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex-1 min-w-[200px]">
-            <p className="mb-1 text-sm font-bold uppercase tracking-wider text-blue-400">Mental Models</p>
+            <div className="flex items-center gap-1.5 mb-1">
+              <Layers className="w-4 h-4 text-blue-400 shrink-0" />
+              <p className="text-sm font-bold uppercase tracking-wider text-blue-400">6 Months LMS Access</p>
+            </div>
             <p className="text-xs leading-relaxed opacity-80">
-              Develop intuition for complex code so you can debug like a senior engineer.
+              Extended 6-month access to re-watch lectures, download source code, and track assignments.
             </p>
           </div>
         </div>
@@ -264,29 +287,29 @@ export default function SkillFlowLanding() {
 
       {/* 04 — STEP 3 */}
       <FlowSection
-        aria-label="Step 3 - Minor Projects"
+        aria-label="Step 3 - Projects"
         style={{ backgroundColor: '#F5F0E8', color: '#000000' }}
       >
-        <p className="text-xs font-bold uppercase tracking-[0.2em]">03 — Step 3: Application</p>
+        <p className="text-xs font-bold uppercase tracking-[0.2em]">03 — Step 3: Projects</p>
         <hr className="my-3 border-none border-t border-black/40" />
 
         <div>
           <p className="text-sm font-semibold tracking-wider uppercase opacity-75 mb-1">
-            Put Your Learning To Use
+            Build Tangible, Real-World Systems
           </p>
           <h2 className="text-[clamp(3rem,10vw,11rem)] font-bold leading-[0.92] uppercase tracking-tight">
+            Major &amp;
+            <br />
             Minor
             <br />
             Projects
-            <br />
-            In Action
           </h2>
         </div>
 
         <hr className="my-3 border-none border-t border-black/40" />
 
-        <p className="max-w-[52ch] text-[clamp(1.05rem,2.2vw,1.85rem)] font-normal leading-relaxed">
-          Apply what you&apos;ve learned in smaller, targeted projects. Every minor project builds your confidence and provides tangible, hands-on experience.
+        <p className="max-w-[55ch] text-[clamp(1.05rem,2.2vw,1.85rem)] font-normal leading-relaxed">
+          Move from theory to genuine execution. Deliver 1 targeted Minor Project to cement fundamentals and 1 production-ready Major Project to showcase in technical interviews.
         </p>
 
         <hr className="my-3 border-none border-t border-black/40" />
@@ -295,28 +318,28 @@ export default function SkillFlowLanding() {
           <div className="p-4 rounded-xl bg-black/5 border border-black/10 flex-1 min-w-[200px]">
             <div className="flex items-center gap-1.5 mb-1">
               <Layers className="w-4 h-4 text-orange-600 shrink-0" />
-              <p className="text-sm font-bold uppercase tracking-wider">Hands-on</p>
+              <p className="text-sm font-bold uppercase tracking-wider">1 Minor Project</p>
             </div>
             <p className="text-xs leading-relaxed opacity-80">
-              A practical project after every module to cement understanding.
-            </p>
-          </div>
-          <div className="p-4 rounded-xl bg-black/5 border border-black/10 flex-1 min-w-[200px]">
-            <div className="flex items-center gap-1.5 mb-1">
-              <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-              <p className="text-sm font-bold uppercase tracking-wider">Mentor Review</p>
-            </div>
-            <p className="text-xs leading-relaxed opacity-80">
-              Receive line-by-line review and tips from seasoned professionals.
+              Targeted sprint project testing foundational concepts, state management, and API handling.
             </p>
           </div>
           <div className="p-4 rounded-xl bg-black/5 border border-black/10 flex-1 min-w-[200px]">
             <div className="flex items-center gap-1.5 mb-1">
               <Code className="w-4 h-4 text-blue-600 shrink-0" />
-              <p className="text-sm font-bold uppercase tracking-wider">Portfolio Ready</p>
+              <p className="text-sm font-bold uppercase tracking-wider">1 Major Project</p>
             </div>
             <p className="text-xs leading-relaxed opacity-80">
-              Commit your code to GitHub with clean documentation.
+              Comprehensive end-to-end application designed to solve real-world problems for your portfolio.
+            </p>
+          </div>
+          <div className="p-4 rounded-xl bg-black/5 border border-black/10 flex-1 min-w-[200px]">
+            <div className="flex items-center gap-1.5 mb-1">
+              <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+              <p className="text-sm font-bold uppercase tracking-wider">Mentor Code Review</p>
+            </div>
+            <p className="text-xs leading-relaxed opacity-80">
+              Live GitHub pull request reviews, architecture guidance, and industry-grade deployment tips.
             </p>
           </div>
         </div>
@@ -324,29 +347,29 @@ export default function SkillFlowLanding() {
 
       {/* 05 — STEP 4 */}
       <FlowSection
-        aria-label="Step 4 - Major Project & Certificates"
+        aria-label="Step 4 - After Training"
         style={{ backgroundColor: '#1A3DE8', color: '#ffffff' }}
       >
-        <p className="text-xs font-bold uppercase tracking-[0.2em]">04 — Step 4: Outcome</p>
+        <p className="text-xs font-bold uppercase tracking-[0.2em]">04 — Step 4: After Training</p>
         <hr className="my-3 border-none border-t border-white/40" />
 
         <div>
           <p className="text-sm font-semibold tracking-wider uppercase opacity-90 mb-1">
-            And Your Certificates
+            Certifications &amp; Recommendations
           </p>
           <h2 className="text-[clamp(3rem,10vw,11rem)] font-bold leading-[0.92] uppercase tracking-tight">
-            Major
+            Dual
             <br />
-            Project &amp;
+            Certificates
             <br />
-            Certified
+            &amp; LOR
           </h2>
         </div>
 
         <hr className="my-3 border-none border-t border-white/40" />
 
         <p className="max-w-[55ch] text-[clamp(1.05rem,2.2vw,1.85rem)] font-light leading-relaxed">
-          The final step: a big, real-world project for your portfolio. Receive dual certificates that validate your expertise.
+          Earn verified proof of your hard work. Receive dual certifications validating course completion and internship project delivery, plus a performance-backed Letter of Recommendation.
         </p>
 
         <hr className="my-3 border-none border-t border-white/40" />
@@ -355,27 +378,97 @@ export default function SkillFlowLanding() {
           <div className="p-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex-1 min-w-[200px]">
             <div className="flex items-center gap-1.5 mb-1">
               <Award className="w-5 h-5 text-amber-300 shrink-0" />
-              <p className="text-sm font-bold uppercase tracking-wider">Certificate 1</p>
+              <p className="text-sm font-bold uppercase tracking-wider">Training Certificate</p>
             </div>
-            <h3 className="font-semibold text-base mb-0.5">Course Completion Certificate</h3>
             <p className="text-xs leading-relaxed opacity-80">
-              Awarded when you complete all curriculum modules and code walkthroughs.
+              Official credential awarded upon successful completion of curriculum modules and assignments.
             </p>
           </div>
 
           <div className="p-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex-1 min-w-[200px]">
             <div className="flex items-center gap-1.5 mb-1">
               <Award className="w-5 h-5 text-amber-300 shrink-0" />
-              <p className="text-sm font-bold uppercase tracking-wider">Certificate 2</p>
+              <p className="text-sm font-bold uppercase tracking-wider">Internship Certificate</p>
             </div>
-            <h3 className="font-semibold text-base mb-0.5">Project / Internship Certificate</h3>
             <p className="text-xs leading-relaxed opacity-80">
-              Awarded upon successful submission and review of your full major project.
+              Industry internship certificate validating practical project execution and milestone delivery.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex-1 min-w-[200px]">
+            <div className="flex items-center gap-1.5 mb-1">
+              <FileCheck className="w-5 h-5 text-emerald-300 shrink-0" />
+              <p className="text-sm font-bold uppercase tracking-wider">LOR (Recommendation)</p>
+            </div>
+            <p className="text-xs leading-relaxed opacity-80">
+              Formal Letter of Recommendation highlighting your project performance for job and masters applications.
+            </p>
+          </div>
+        </div>
+      </FlowSection>
+
+      {/* 06 — STEP 5 */}
+      <FlowSection
+        aria-label="Step 5 - Add-ons"
+        style={{ backgroundColor: '#0B132B', color: '#ffffff' }}
+      >
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-400">05 — Step 5: Add-Ons</p>
+        <hr className="my-3 border-none border-t border-cyan-400/30" />
+
+        <div>
+          <p className="text-sm font-semibold tracking-wider uppercase text-cyan-300 mb-1">
+            Complete Career Acceleration
+          </p>
+          <h2 className="text-[clamp(3rem,10vw,11rem)] font-bold leading-[0.92] uppercase tracking-tight">
+            Career
+            <br />
+            Support &amp;
+            <br />
+            Add-Ons
+          </h2>
+        </div>
+
+        <hr className="my-3 border-none border-t border-cyan-400/30" />
+
+        <p className="max-w-[55ch] text-[clamp(1.05rem,2.2vw,1.85rem)] font-light leading-relaxed text-slate-200">
+          We bridge the gap from learning to getting hired. Benefit from dedicated placement assistance, real-time mock interview rounds, and professional ATS resume optimization.
+        </p>
+
+        <hr className="my-3 border-none border-t border-cyan-400/30" />
+
+        <div className="flex flex-wrap gap-[3vw]">
+          <div className="p-4 rounded-xl bg-white/10 backdrop-blur-sm border border-cyan-400/20 flex-1 min-w-[200px]">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Briefcase className="w-5 h-5 text-cyan-300 shrink-0" />
+              <p className="text-sm font-bold uppercase tracking-wider text-cyan-300">Job Assistance</p>
+            </div>
+            <p className="text-xs leading-relaxed opacity-80">
+              Dedicated placement assistance, partner company referrals, and active hiring updates.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-white/10 backdrop-blur-sm border border-cyan-400/20 flex-1 min-w-[200px]">
+            <div className="flex items-center gap-1.5 mb-1">
+              <UserCheck className="w-5 h-5 text-cyan-300 shrink-0" />
+              <p className="text-sm font-bold uppercase tracking-wider text-cyan-300">Mock Interviews</p>
+            </div>
+            <p className="text-xs leading-relaxed opacity-80">
+              1-on-1 technical and HR mock interviews with detailed constructive feedback from senior mentors.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-white/10 backdrop-blur-sm border border-cyan-400/20 flex-1 min-w-[200px]">
+            <div className="flex items-center gap-1.5 mb-1">
+              <FileText className="w-5 h-5 text-cyan-300 shrink-0" />
+              <p className="text-sm font-bold uppercase tracking-wider text-cyan-300">Resume Building</p>
+            </div>
+            <p className="text-xs leading-relaxed opacity-80">
+              ATS-compliant resume reviews, GitHub portfolio polishing, and LinkedIn profile optimization.
             </p>
           </div>
         </div>
 
-        <hr className="my-3 border-none border-t border-white/40" />
+        <hr className="my-3 border-none border-t border-cyan-400/30" />
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-auto">
           <p className="text-base font-normal tracking-wide opacity-80">
