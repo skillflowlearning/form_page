@@ -59,7 +59,7 @@ export default function SkillFlowLanding() {
                 rel="noopener noreferrer"
                 className="font-['Rubik'] font-normal text-[13px] sm:text-[15px] md:text-[17px] leading-tight text-white hover:text-blue-400 transition-colors cursor-pointer inline-flex items-center py-1 whitespace-nowrap"
               >
-                Log in
+                LMS Login
               </a>
             </nav>
           </header>
@@ -68,16 +68,21 @@ export default function SkillFlowLanding() {
           <div className="relative z-20 my-auto pt-[clamp(1rem,4vw,2rem)] pb-[clamp(2rem,6vw,4rem)] max-w-[540px] xl:max-w-[580px]">
             {/* Title */}
             <h1 className="font-sans font-extrabold text-white text-[clamp(2.75rem,5.6vw,5.6rem)] leading-[0.96] tracking-tight uppercase select-none">
-              Skill
+              About
               <br />
-              <span className="text-blue-500">Flow</span>
+              SkillFlow
               <br />
               Learn
             </h1>
 
+            {/* Subtitle */}
+            <p className="text-[clamp(0.9rem,1.3vw,1.25rem)] font-normal leading-snug text-white mt-3 sm:mt-5 max-w-[44ch]">
+              We're Changing the Way the World Learns.
+            </p>
+
             {/* Description */}
-            <p className="text-[clamp(0.825rem,1.15vw,1.15rem)] font-light leading-relaxed text-slate-300 mt-3 sm:mt-6 max-w-[44ch]">
-              Not just theory, real skills. With SkillFlowLearn you move through 4 clear steps, from the basics all the way to a major project, and finish with a certificate that proves your hard work.
+            <p className="text-[clamp(0.78rem,1.05vw,1.05rem)] font-light leading-relaxed text-slate-300 mt-2 sm:mt-3 max-w-[44ch]">
+              SkillFlow was founded on a simple, powerful idea: everyone, everywhere deserves access to high-quality education. We are a team of passionate educators, technologists, and innovators dedicated to creating a global community of lifelong learners.
             </p>
 
             {/* Action buttons */}
