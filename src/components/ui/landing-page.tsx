@@ -205,10 +205,10 @@ export default function SkillFlowLanding() {
           <div className="p-4 rounded-xl bg-black/10 backdrop-blur-sm flex-1 min-w-[200px]">
             <div className="flex items-center gap-1.5 mb-1">
               <Sparkles className="w-4 h-4 shrink-0" />
-              <p className="text-sm font-bold uppercase tracking-wider">Track Selection</p>
+              <p className="text-sm font-bold uppercase tracking-wider">Personalized Career Guidance</p>
             </div>
             <p className="text-xs leading-relaxed opacity-90">
-              1-on-1 counseling to choose the domain matching your strengths and career aspirations.
+              Get 1-on-1 counseling to find the domain that best matches your strengths and career aspirations.
             </p>
           </div>
           <div className="p-4 rounded-xl bg-black/10 backdrop-blur-sm flex-1 min-w-[200px]">
@@ -235,7 +235,7 @@ export default function SkillFlowLanding() {
 
         <div>
           <p className="text-sm font-semibold tracking-wider uppercase text-blue-300 mb-1">
-            Self-Paced &amp; Mentor-Led Learning
+            Mentor-Led Learning
           </p>
           <h2 className="text-[clamp(3rem,10vw,11rem)] font-bold leading-[0.92] uppercase tracking-tight">
             Master
@@ -249,7 +249,7 @@ export default function SkillFlowLanding() {
         <hr className="my-3 border-none border-t border-white/20" />
 
         <p className="max-w-[55ch] text-[clamp(1.05rem,2.2vw,1.85rem)] font-light leading-relaxed text-slate-200">
-          Learn in a flexible hybrid format: self-paced premium video modules combined with live mentor-led doubt sessions, 24+ hours of content, and 6 months of LMS access.
+          Learn in a flexible hybrid format: interactive live sessions combined with mentor-led doubt sessions, 24+ hours of content, and 6 months of LMS access.
         </p>
 
         <hr className="my-3 border-none border-t border-white/20" />
@@ -258,10 +258,10 @@ export default function SkillFlowLanding() {
           <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex-1 min-w-[200px]">
             <div className="flex items-center gap-1.5 mb-1">
               <BookOpen className="w-4 h-4 text-blue-400 shrink-0" />
-              <p className="text-sm font-bold uppercase tracking-wider text-blue-400">Self-Paced / Mentor-Led</p>
+              <p className="text-sm font-bold uppercase tracking-wider text-blue-400">Mentor-Led</p>
             </div>
             <p className="text-xs leading-relaxed opacity-80">
-              Learn at your own pace with scheduled live mentor sessions for doubt solving and guidance.
+              Interactive live mentor sessions for personalized guidance, real-world coding, and doubt solving.
             </p>
           </div>
           <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex-1 min-w-[200px]">
