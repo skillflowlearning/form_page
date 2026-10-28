@@ -472,14 +472,14 @@ export default function SkillFlowLanding() {
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-auto">
           <p className="text-base font-normal tracking-wide opacity-80">
-            Fill out the form to register today and start building your future.
+            Register today and start building your future.
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={goToForm}
               className="px-8 py-3.5 rounded-xl font-bold bg-white text-blue-900 hover:bg-slate-100 transition-all duration-200 shadow-xl hover:scale-[1.02] active:scale-[0.98] cursor-pointer text-center"
             >
-              Fill The Form
+              Register Now
             </button>
             <button
               onClick={openContact}
