@@ -369,8 +369,7 @@ export default function ContactWithGlobe({
   const [formData, setFormData] = useState({
     name: "",
     contactNo: "",
-    collegeEmail: "",
-    collegeName: "",
+    email: "",
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -390,8 +389,7 @@ export default function ContactWithGlobe({
         body: JSON.stringify({
           NAME: formData.name,
           "Contact No": formData.contactNo,
-          "College Email ID": formData.collegeEmail,
-          "College Name": formData.collegeName,
+          "Mail ID": formData.email,
           Message: formData.message || "—",
           _subject: `New Lead: ${formData.name} — SkillFlow Contact`,
           _template: "table",
@@ -641,32 +639,16 @@ export default function ContactWithGlobe({
                     </div>
                   </div>
 
-                  {/* College Email */}
+                  {/* Mail ID */}
                   <div className="flex flex-col gap-2">
                     <label className="text-xs font-semibold tracking-widest uppercase text-zinc-500">
-                      College Email ID <span className="text-rose-500">*</span>
+                      Mail ID <span className="text-rose-500">*</span>
                     </label>
                     <input
                       type="email"
-                      name="collegeEmail"
+                      name="email"
                       required
-                      value={formData.collegeEmail}
-                      onChange={handleChange}
-                      placeholder=""
-                      className={inputCls}
-                    />
-                  </div>
-
-                  {/* College Name */}
-                  <div className="flex flex-col gap-2">
-                    <label className="text-xs font-semibold tracking-widest uppercase text-zinc-500">
-                      College Name <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="collegeName"
-                      required
-                      value={formData.collegeName}
+                      value={formData.email}
                       onChange={handleChange}
                       placeholder=""
                       className={inputCls}

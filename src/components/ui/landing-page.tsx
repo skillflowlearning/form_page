@@ -31,7 +31,7 @@ export default function SkillFlowLanding() {
   };
 
   const goToForm = () => {
-    alert("Thank you for your interest! The registration form will open shortly.");
+    openContact();
   };
 
   const scrollToStep1 = () => {
