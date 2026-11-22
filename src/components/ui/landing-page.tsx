@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import FlowArt, { FlowSection } from '@/components/ui/story-scroll';
 import logoImg from '@/assets/image/logo_cropped.png';
 import frontImg from '@/assets/image/frontimage_cropped.png';
@@ -21,9 +22,24 @@ import {
 } from 'lucide-react';
 import ContactWithGlobe from '@/components/ui/contact-with-globe';
 
+// Quiz sirf local par available hai - production par "Coming Soon" dikhega
+const IS_LOCAL = import.meta.env.DEV;
+
 export default function SkillFlowLanding() {
+  const navigate = useNavigate();
   const [showContactPage, setShowContactPage] = useState(false);
   const [showQuizModal, setShowQuizModal] = useState(false);
+
+  // Quiz button click handler
+  const handleQuizClick = () => {
+    if (IS_LOCAL) {
+      // Local par: student login par bhejo
+      navigate('/student/login');
+    } else {
+      // Production par: Coming Soon modal dikhao
+      setShowQuizModal(true);
+    }
+  };
 
   useEffect(() => {
     if (showQuizModal) {
@@ -115,7 +131,7 @@ export default function SkillFlowLanding() {
               </a>
               <button
                 type="button"
-                onClick={() => setShowQuizModal(true)}
+                onClick={handleQuizClick}
                 className="font-['Rubik'] font-normal text-[13px] sm:text-[15px] md:text-[17px] leading-tight text-white hover:text-blue-400 transition-colors cursor-pointer inline-flex items-center py-1 whitespace-nowrap"
               >
                 Quiz

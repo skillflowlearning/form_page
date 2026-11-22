@@ -1,0 +1,82 @@
+'use client'
+// /admin/login - Admin login with role='admin' check
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+
+export default function AdminLoginPage() {
+  const router = useRouter()
+  const supabase = createClient()
+
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+
+    // Step 1: Login karo
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (signInError) {
+      setLoading(false)
+      setError(signInError.message)
+      return
+    }
+
+    // Step 2: Role check karo profiles table se
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .single()
+
+    if (profileError || profile?.role !== 'admin') {
+      // Role 'admin' nahi hai to logout karo
+      await supabase.auth.signOut()
+      setLoading(false)
+      setError('Access denied. Sirf admins yahan login kar sakte hain.')
+      return
+    }
+
+    setLoading(false)
+    router.push('/admin/dashboard')
+  }
+
+  return (
+    <div>
+      <h1>Admin Login</h1>
+      <form onSubmit={handleLogin}>
+        <div>
+          <label>Email</label><br />
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label>Password</label><br />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        {error && <p style={{ color: 'red' }}>{error}</p>}
+        <button type="submit" disabled={loading}>
+          {loading ? 'Loading...' : 'Login'}
+        </button>
+      </form>
+    </div>
+  )
+}

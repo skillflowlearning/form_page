@@ -1,6 +1,22 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@theme inline {
+  --color-destructive-foreground: var(--destructive-foreground);
+}
+
+:root {
+  --radius: 1rem;
+  --accent: oklch(0.89 0 0);
+  --destructive-foreground: oklch(0.985 0 0);
+}
+
+.dark {
+  --background: oklch(0.125 0 0);
+  --accent: oklch(0.229 0 0);
+  --destructive-foreground: oklch(0.985 0 0);
+}
+
 @layer base {
   :root {
     --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
@@ -76,4 +92,16 @@ body {
   color: hsl(var(--foreground));
   overflow-x: hidden;
   font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+}
+
+/* Prevent Chrome/Safari/Edge autofill white background inside dark/glass inputs */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: #f3f4f6 !important;
+  caret-color: #ffffff !important;
+  transition: background-color 500000s ease-in-out 0s !important;
+  box-shadow: 0 0 0px 1000px rgba(16, 20, 31, 0.95) inset !important;
 }
