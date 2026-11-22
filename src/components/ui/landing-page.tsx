@@ -22,23 +22,14 @@ import {
 } from 'lucide-react';
 import ContactWithGlobe from '@/components/ui/contact-with-globe';
 
-// Quiz sirf local par available hai - production par "Coming Soon" dikhega
-const IS_LOCAL = import.meta.env.DEV;
-
 export default function SkillFlowLanding() {
   const navigate = useNavigate();
   const [showContactPage, setShowContactPage] = useState(false);
   const [showQuizModal, setShowQuizModal] = useState(false);
 
-  // Quiz button click handler
+  // Quiz button click handler - direct student login/quiz portal par le jaye
   const handleQuizClick = () => {
-    if (IS_LOCAL) {
-      // Local par: student login par bhejo
-      navigate('/student/login');
-    } else {
-      // Production par: Coming Soon modal dikhao
-      setShowQuizModal(true);
-    }
+    navigate('/student/login');
   };
 
   useEffect(() => {
