@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { 
   Home, Zap, MessageSquare, Trophy, Star, TrendingUp, 
   CheckCircle2, ArrowLeft, Loader2, Sparkles, LogOut, 
-  Mail, Shield, ChevronRight, Lock, User
+  Mail, Shield, ChevronRight, Lock, User, Clock
 } from 'lucide-react'
 import BottomNavBar, { type NavItem } from '@/components/ui/bottom-nav-bar'
 import { AlertCard } from '@/components/ui/card-8'
@@ -21,6 +21,7 @@ interface LeaderboardEntry {
 interface Quiz {
   id: string
   title: string
+  duration_minutes?: number
   created_at: string
   attempted?: boolean
   score?: number | null
@@ -66,8 +67,10 @@ export default function StudentDashboard() {
   const [currentQ, setCurrentQ] = useState(0)
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({})
   const [quizScreen, setQuizScreen] = useState<'list' | 'quiz' | 'result'>('list')
-  const [quizResult, setQuizResult] = useState<{ score: number; total: number } | null>(null)
+  const [quizResult, setQuizResult] = useState<{ score: number; total: number; autoSubmitted?: boolean } | null>(null)
   const [submittingQuiz, setSubmittingQuiz] = useState(false)
+  const [timeLeft, setTimeLeft] = useState<number>(0)
+  const submittingRef = useRef(false)
 
   // Community
   const [communityMessages, setCommunityMessages] = useState<CommunityMsg[]>([])
@@ -150,7 +153,7 @@ export default function StudentDashboard() {
       // Fetch quizzes
       const { data: qzList } = await supabase
         .from('quizzes')
-        .select('id, title, created_at')
+        .select('id, title, duration_minutes, created_at')
         .eq('is_active', true)
         .order('created_at', { ascending: false })
 
@@ -181,6 +184,53 @@ export default function StudentDashboard() {
     init()
   }, [navigate])
 
+  const refreshQuizzes = useCallback(async (studentId: string) => {
+    const [{ data: qzList }, { data: attempts }] = await Promise.all([
+      supabase
+        .from('quizzes')
+        .select('id, title, duration_minutes, created_at')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('attempts')
+        .select('quiz_id, score')
+        .eq('student_id', studentId),
+    ])
+
+    const attemptMap = new Map(attempts?.map(a => [a.quiz_id, a.score]) || [])
+    setQuizzes((qzList || []).map(q => ({
+      ...q,
+      attempted: attemptMap.has(q.id),
+      score: attemptMap.get(q.id) ?? null
+    })))
+  }, [])
+
+  // Real-time subscription + refresh when switching to Quiz tab
+  useEffect(() => {
+    if (!profile?.id) return
+    if (currentTab === 'quiz' && quizScreen === 'list') {
+      refreshQuizzes(profile.id)
+    }
+  }, [currentTab, quizScreen, profile?.id, refreshQuizzes])
+
+  useEffect(() => {
+    if (!profile?.id) return
+    const channel = supabase
+      .channel('quizzes-realtime-feed')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'quizzes' },
+        () => {
+          refreshQuizzes(profile.id)
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [profile?.id, refreshQuizzes])
+
   const handleCloseWelcome = async () => {
     setShowWelcome(false)
     if (profile?.id) {
@@ -195,6 +245,7 @@ export default function StudentDashboard() {
 
   const handleStartQuiz = async (quiz: Quiz) => {
     if (quiz.attempted) return
+    submittingRef.current = false
     setActiveQuiz(quiz)
     const { data: qs } = await supabase
       .from('questions')
@@ -204,11 +255,13 @@ export default function StudentDashboard() {
     setQuestions(qs || [])
     setSelectedAnswers({})
     setCurrentQ(0)
+    setTimeLeft((quiz.duration_minutes || 8) * 60)
     setQuizScreen('quiz')
   }
 
-  const handleSubmitAttempt = async () => {
-    if (!activeQuiz || !profile?.id) return
+  const handleSubmitAttempt = useCallback(async (isAutoSubmit = false) => {
+    if (!activeQuiz || !profile?.id || submittingRef.current) return
+    submittingRef.current = true
     setSubmittingQuiz(true)
 
     let score = 0
@@ -224,11 +277,37 @@ export default function StudentDashboard() {
 
     setSubmittingQuiz(false)
     if (!error) {
-      setQuizResult({ score, total: questions.length })
+      setQuizResult({ score, total: questions.length, autoSubmitted: isAutoSubmit })
       setQuizScreen('result')
       setProfile((prev: any) => ({ ...prev, total_score: (prev.total_score || 0) + score }))
       setQuizzes(prev => prev.map(q => q.id === activeQuiz.id ? { ...q, attempted: true, score } : q))
+    } else {
+      submittingRef.current = false
     }
+  }, [activeQuiz, profile?.id, questions, selectedAnswers])
+
+  // Countdown timer effect for active quiz
+  useEffect(() => {
+    if (quizScreen !== 'quiz' || questions.length === 0) return
+
+    if (timeLeft <= 0) {
+      if (!submittingRef.current) {
+        handleSubmitAttempt(true)
+      }
+      return
+    }
+
+    const timerId = setInterval(() => {
+      setTimeLeft(prev => (prev <= 1 ? 0 : prev - 1))
+    }, 1000)
+
+    return () => clearInterval(timerId)
+  }, [quizScreen, questions.length, timeLeft, handleSubmitAttempt])
+
+  const formatTimer = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
   }
 
   const handleLogout = async () => {
@@ -478,7 +557,9 @@ export default function StudentDashboard() {
                         <div className="flex-1">
                           <h4 className="text-base font-bold text-white">{q.title}</h4>
                           <p className="text-xs mt-1 text-slate-400">
-                            {q.attempted ? `Completed • Score: ${q.score} pts` : 'Ready to attempt'}
+                            {q.attempted
+                              ? `Already attempted • Score: ${q.score} pts`
+                              : `Ready to attempt • ${q.duration_minutes || 8} min`}
                           </p>
                         </div>
                         {!q.attempted ? <ChevronRight className="w-5 h-5 text-slate-400" /> : <Lock className="w-4 h-4 text-emerald-400" />}
@@ -493,18 +574,62 @@ export default function StudentDashboard() {
 
               {quizScreen === 'quiz' && questions.length > 0 && (
                 <div className="flex flex-col gap-5">
-                  <div className="flex items-center gap-3">
-                    <button onClick={() => setQuizScreen('list')} className="p-2 rounded-lg bg-white/5 border border-white/10 text-slate-300 cursor-pointer">
-                      <ArrowLeft className="w-4 h-4" />
-                    </button>
-                    <div>
-                      <span className="text-[11px] uppercase font-bold text-indigo-400 tracking-wider">
-                        Question {currentQ + 1} of {questions.length}
-                      </span>
-                      <p className="text-sm text-slate-200 font-semibold">{activeQuiz?.title}</p>
+                  {/* Top Bar: Back + Title + Countdown Timer */}
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <button
+                        onClick={() => setQuizScreen('list')}
+                        className="p-2 rounded-lg bg-white/5 border border-white/10 text-slate-300 cursor-pointer shrink-0"
+                        title="Back to quiz list"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                      </button>
+                      <div className="min-w-0">
+                        <span className="text-[11px] uppercase font-bold text-indigo-400 tracking-wider">
+                          Question {currentQ + 1} of {questions.length}
+                        </span>
+                        <p className="text-sm text-slate-200 font-semibold truncate">{activeQuiz?.title}</p>
+                      </div>
+                    </div>
+
+                    {/* Countdown Timer */}
+                    <div
+                      className={`px-3.5 py-2 rounded-xl border flex items-center gap-2 font-mono text-sm font-bold shrink-0 transition-colors ${
+                        timeLeft <= 60
+                          ? 'bg-red-500/15 border-red-500/40 text-red-400 animate-pulse'
+                          : 'bg-indigo-500/10 border-indigo-500/30 text-indigo-300'
+                      }`}
+                    >
+                      <Clock className="w-4 h-4" />
+                      <span>{formatTimer(timeLeft)}</span>
                     </div>
                   </div>
 
+                  {/* Question Progress Pills */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {questions.map((qItem, idx) => {
+                      const isAnswered = selectedAnswers[qItem.id] !== undefined
+                      const isCurrent = idx === currentQ
+                      return (
+                        <button
+                          key={qItem.id}
+                          type="button"
+                          onClick={() => setCurrentQ(idx)}
+                          className={`w-8 h-8 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
+                            isCurrent
+                              ? 'bg-indigo-500 border-indigo-400 text-white shadow-[0_0_10px_rgba(99,102,241,0.4)]'
+                              : isAnswered
+                              ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                              : 'bg-white/[0.03] border-white/10 text-slate-400 hover:bg-white/[0.08]'
+                          }`}
+                        >
+                          {idx + 1}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {/* Question Box */}
                   <div className="rounded-2xl p-6 bg-white/[0.03] border border-white/[0.08]">
                     <h3 className="text-base md:text-lg font-medium text-white leading-relaxed">
                       {questions[currentQ].question_text}
@@ -537,23 +662,35 @@ export default function StudentDashboard() {
                     })}
                   </div>
 
-                  {/* Nav */}
-                  <div className="flex gap-3 pt-2">
+                  {/* Navigation Buttons (Previous / Next / Submit) */}
+                  <div className="flex items-center gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentQ(c => Math.max(0, c - 1))}
+                      disabled={currentQ === 0}
+                      className="px-5 py-3.5 rounded-xl font-bold text-sm bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 disabled:opacity-30 cursor-pointer transition-colors"
+                    >
+                      ← Previous
+                    </button>
+
                     {currentQ < questions.length - 1 ? (
                       <button
+                        type="button"
                         onClick={() => setCurrentQ(c => c + 1)}
-                        disabled={selectedAnswers[questions[currentQ].id] === undefined}
-                        className="w-full py-3.5 rounded-xl font-bold text-sm bg-white/10 hover:bg-white/15 text-white disabled:opacity-40 cursor-pointer"
+                        className="flex-1 py-3.5 rounded-xl font-bold text-sm bg-white/10 hover:bg-white/15 text-white cursor-pointer transition-colors"
                       >
                         Next Question →
                       </button>
                     ) : (
                       <button
-                        onClick={handleSubmitAttempt}
-                        disabled={submittingQuiz || Object.keys(selectedAnswers).length < questions.length}
-                        className="w-full py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-indigo-600 to-purple-600 text-white disabled:opacity-40 cursor-pointer shadow-lg shadow-indigo-600/25"
+                        type="button"
+                        onClick={() => handleSubmitAttempt(false)}
+                        disabled={submittingQuiz}
+                        className="flex-1 py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-indigo-600 to-purple-600 text-white disabled:opacity-40 cursor-pointer shadow-lg shadow-indigo-600/25"
                       >
-                        {submittingQuiz ? 'Submitting...' : 'Submit Final Answers'}
+                        {submittingQuiz
+                          ? 'Submitting...'
+                          : `Submit Quiz (${Object.keys(selectedAnswers).length}/${questions.length} Answered)`}
                       </button>
                     )}
                   </div>
@@ -563,10 +700,12 @@ export default function StudentDashboard() {
               {quizScreen === 'result' && quizResult && (
                 <div className="text-center py-10 flex flex-col items-center gap-5">
                   <div className="w-28 h-28 rounded-full bg-emerald-500/10 border-2 border-emerald-500/30 flex items-center justify-center text-4xl font-extrabold text-emerald-400 font-['Space_Grotesk'] shadow-[0_0_40px_rgba(34,197,94,0.15)]">
-                    {Math.round((quizResult.score / quizResult.total) * 100)}%
+                    {quizResult.total > 0 ? Math.round((quizResult.score / quizResult.total) * 100) : 0}%
                   </div>
                   <div>
-                    <h3 className="text-2xl md:text-3xl font-bold font-['Space_Grotesk'] text-white">Quiz Completed!</h3>
+                    <h3 className="text-2xl md:text-3xl font-bold font-['Space_Grotesk'] text-white">
+                      {quizResult.autoSubmitted ? "Time's Up! Quiz Auto-Submitted" : 'Quiz Completed!'}
+                    </h3>
                     <p className="text-sm md:text-base text-slate-300 mt-1">
                       You scored <strong className="text-indigo-400 font-bold">{quizResult.score}</strong> out of {quizResult.total} points
                     </p>

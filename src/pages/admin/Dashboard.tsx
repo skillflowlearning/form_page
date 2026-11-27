@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { 
   Home, Zap, MessageSquare, Settings, Users, 
-  UserPlus, LogOut, Loader2, CheckCircle2, AlertCircle
+  UserPlus, LogOut, Loader2, CheckCircle2, AlertCircle,
+  Plus, Trash2, Clock
 } from 'lucide-react'
 import BottomNavBar, { type NavItem } from '@/components/ui/bottom-nav-bar'
 
@@ -15,6 +16,18 @@ interface LeaderboardEntry {
   name?: string
   total_score: number
 }
+
+interface QuestionDraft {
+  question_text: string
+  options: [string, string, string, string]
+  correct_option: number
+}
+
+const createEmptyQuestion = (): QuestionDraft => ({
+  question_text: '',
+  options: ['', '', '', ''],
+  correct_option: 0,
+})
 
 const medals = [
   { label: '1st', color: '#f59e0b', emoji: '🥇' },
@@ -34,9 +47,8 @@ export default function AdminDashboard() {
 
   // Quiz Creator Form
   const [qTitle, setQTitle] = useState('')
-  const [qText, setQText] = useState('')
-  const [options, setOptions] = useState(['', '', '', ''])
-  const [correctOpt, setCorrectOpt] = useState(0)
+  const [durationMinutes, setDurationMinutes] = useState<number>(8)
+  const [questionList, setQuestionList] = useState<QuestionDraft[]>([createEmptyQuestion()])
   const [creatingQuiz, setCreatingQuiz] = useState(false)
 
   // Community Broadcast
@@ -98,37 +110,90 @@ export default function AdminDashboard() {
     init()
   }, [navigate])
 
-  // Create Quiz
+  // Question Draft Helpers (1 to 15 questions)
+  const handleAddQuestion = () => {
+    if (questionList.length >= 15) {
+      return showToast('error', 'Maximum 15 questions allowed per quiz.')
+    }
+    setQuestionList(prev => [...prev, createEmptyQuestion()])
+  }
+
+  const handleRemoveQuestion = (index: number) => {
+    if (index === 0 || questionList.length <= 1) return
+    setQuestionList(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const handleQuestionTextChange = (index: number, value: string) => {
+    setQuestionList(prev => prev.map((q, i) => (i === index ? { ...q, question_text: value } : q)))
+  }
+
+  const handleOptionChange = (qIndex: number, optIndex: number, value: string) => {
+    setQuestionList(prev =>
+      prev.map((q, i) => {
+        if (i !== qIndex) return q
+        const updatedOpts = [...q.options] as [string, string, string, string]
+        updatedOpts[optIndex] = value
+        return { ...q, options: updatedOpts }
+      })
+    )
+  }
+
+  const handleCorrectOptChange = (qIndex: number, optIndex: number) => {
+    setQuestionList(prev => prev.map((q, i) => (i === qIndex ? { ...q, correct_option: optIndex } : q)))
+  }
+
+  // Create Quiz (Batch insert quiz + all questions)
   const handleCreateQuiz = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!qTitle.trim() || !qText.trim()) return showToast('error', 'Quiz Title and Question are required.')
-    if (options.some(o => !o.trim())) return showToast('error', 'All 4 options must be filled.')
+    if (!qTitle.trim()) return showToast('error', 'Quiz Title is required.')
+    const parsedDuration = Number(durationMinutes)
+    if (!Number.isFinite(parsedDuration) || parsedDuration < 1 || parsedDuration > 180) {
+      return showToast('error', 'Timer duration must be between 1 and 180 minutes.')
+    }
+
+    for (let i = 0; i < questionList.length; i++) {
+      const q = questionList[i]
+      if (!q.question_text.trim()) {
+        return showToast('error', `Question ${i + 1}: Question text is required.`)
+      }
+      if (q.options.some(o => !o.trim())) {
+        return showToast('error', `Question ${i + 1}: All 4 options must be filled.`)
+      }
+    }
 
     setCreatingQuiz(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      const { data: quiz, error: qzErr } = await supabase.from('quizzes').insert({
-        title: qTitle.trim(),
-        is_active: true,
-        created_by: user?.id,
-      }).select('id').single()
+      const { data: quiz, error: qzErr } = await supabase
+        .from('quizzes')
+        .insert({
+          title: qTitle.trim(),
+          duration_minutes: Math.round(parsedDuration),
+          is_active: true,
+          created_by: user?.id,
+        })
+        .select('id')
+        .single()
 
       if (qzErr) throw qzErr
 
-      const { error: questErr } = await supabase.from('questions').insert({
+      const questionsPayload = questionList.map(q => ({
         quiz_id: quiz.id,
-        question_text: qText.trim(),
-        options: options.map(o => o.trim()),
-        correct_option: correctOpt,
-      })
+        question_text: q.question_text.trim(),
+        options: q.options.map(o => o.trim()),
+        correct_option: q.correct_option,
+      }))
 
-      if (questErr) throw questErr
+      const { error: questErr } = await supabase.from('questions').insert(questionsPayload)
+      if (questErr) {
+        await supabase.from('quizzes').delete().eq('id', quiz.id)
+        throw questErr
+      }
 
-      showToast('success', 'Quiz and question published successfully.')
+      showToast('success', `Quiz published with ${questionList.length} question${questionList.length > 1 ? 's' : ''}!`)
       setQTitle('')
-      setQText('')
-      setOptions(['', '', '', ''])
-      setCorrectOpt(0)
+      setDurationMinutes(8)
+      setQuestionList([createEmptyQuestion()])
       setStats(prev => ({ ...prev, quizzes: prev.quizzes + 1 }))
     } catch (err: any) {
       showToast('error', err?.message || 'Failed to publish quiz.')
@@ -321,62 +386,123 @@ export default function AdminDashboard() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="flex flex-col gap-5 max-w-2xl mx-auto"
+              className="flex flex-col gap-5 max-w-2xl mx-auto pb-8"
             >
-              <div>
-                <h2 className="text-xl font-bold font-['Space_Grotesk'] text-white">Create New Quiz</h2>
-                <p className="text-xs text-slate-400 mt-1">Publish instantly for student dashboard</p>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-xl font-bold font-['Space_Grotesk'] text-white">Create New Quiz</h2>
+                  <p className="text-xs text-slate-400 mt-1">Add 1 to 15 questions &amp; publish instantly for students</p>
+                </div>
+                <span className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold shrink-0">
+                  {questionList.length} / 15 Qs
+                </span>
               </div>
 
               <form onSubmit={handleCreateQuiz} className="flex flex-col gap-4">
-                <div className="rounded-2xl p-5 bg-white/[0.03] border border-white/[0.07] flex flex-col gap-3">
-                  <label className="text-xs font-bold uppercase text-slate-400">Quiz Title</label>
-                  <input
-                    className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-amber-400"
-                    placeholder="e.g. Next.js & React Core Concepts"
-                    value={qTitle}
-                    onChange={e => setQTitle(e.target.value)}
-                  />
+                {/* Quiz Metadata Card: Title + Timer Duration */}
+                <div className="rounded-2xl p-5 bg-white/[0.03] border border-white/[0.07] flex flex-col gap-4">
+                  <div>
+                    <label className="text-xs font-bold uppercase text-slate-400 block mb-2">Quiz Title</label>
+                    <input
+                      className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-amber-400"
+                      placeholder="e.g. Next.js & React Core Concepts"
+                      value={qTitle}
+                      onChange={e => setQTitle(e.target.value)}
+                    />
+                  </div>
 
-                  <label className="text-xs font-bold uppercase text-slate-400 mt-2">Question Text</label>
-                  <textarea
-                    rows={3}
-                    className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-amber-400 resize-none"
-                    placeholder="Enter question text here..."
-                    value={qText}
-                    onChange={e => setQText(e.target.value)}
-                  />
-
-                  <label className="text-xs font-bold uppercase text-slate-400 mt-2">Options (Select correct radio)</label>
-                  {options.map((opt, i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <input
-                        type="radio"
-                        name="correctOpt"
-                        checked={correctOpt === i}
-                        onChange={() => setCorrectOpt(i)}
-                        className="w-4 h-4 accent-amber-500 cursor-pointer"
-                      />
-                      <input
-                        className="flex-1 bg-white/[0.04] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-amber-400"
-                        placeholder={`Option ${String.fromCharCode(65 + i)}`}
-                        value={opt}
-                        onChange={e => {
-                          const updated = [...options]
-                          updated[i] = e.target.value
-                          setOptions(updated)
-                        }}
-                      />
-                    </div>
-                  ))}
+                  <div>
+                    <label className="text-xs font-bold uppercase text-slate-400 flex items-center gap-1.5 mb-2">
+                      <Clock className="w-3.5 h-3.5 text-amber-400" />
+                      Timer Duration (Minutes)
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={180}
+                      className="w-full sm:w-44 bg-white/[0.04] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-amber-400"
+                      value={durationMinutes}
+                      onChange={e => setDurationMinutes(Math.max(1, parseInt(e.target.value || '8', 10)))}
+                    />
+                    <p className="text-[11px] text-slate-500 mt-1">Default: 8 minutes. Auto-submits when time ends.</p>
+                  </div>
                 </div>
 
+                {/* Dynamic Question Blocks */}
+                {questionList.map((q, qIdx) => (
+                  <div
+                    key={qIdx}
+                    className="rounded-2xl p-5 bg-white/[0.03] border border-white/[0.07] flex flex-col gap-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
+                        Question {qIdx + 1}
+                      </span>
+                      {qIdx > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveQuestion(qIdx)}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-xs font-semibold cursor-pointer transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Remove
+                        </button>
+                      )}
+                    </div>
+
+                    <textarea
+                      rows={2}
+                      className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-amber-400 resize-none"
+                      placeholder={`Enter question ${qIdx + 1} text...`}
+                      value={q.question_text}
+                      onChange={e => handleQuestionTextChange(qIdx, e.target.value)}
+                    />
+
+                    <label className="text-[11px] font-bold uppercase text-slate-400 mt-1">
+                      Options (Select correct answer)
+                    </label>
+                    <div className="flex flex-col gap-2.5">
+                      {q.options.map((opt, optIdx) => (
+                        <div key={optIdx} className="flex items-center gap-3">
+                          <input
+                            type="radio"
+                            name={`correctOpt-${qIdx}`}
+                            checked={q.correct_option === optIdx}
+                            onChange={() => handleCorrectOptChange(qIdx, optIdx)}
+                            className="w-4 h-4 accent-amber-500 cursor-pointer shrink-0"
+                          />
+                          <input
+                            className="flex-1 bg-white/[0.04] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-amber-400"
+                            placeholder={`Option ${String.fromCharCode(65 + optIdx)}`}
+                            value={opt}
+                            onChange={e => handleOptionChange(qIdx, optIdx, e.target.value)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+
+                {/* Add Question Button */}
+                <button
+                  type="button"
+                  onClick={handleAddQuestion}
+                  disabled={questionList.length >= 15}
+                  className="w-full py-3 rounded-xl font-semibold text-sm bg-white/[0.04] hover:bg-white/[0.08] border border-dashed border-white/20 text-slate-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Plus className="w-4 h-4 text-amber-400" />
+                  Add Question ({questionList.length}/15)
+                </button>
+
+                {/* Publish Quiz Button */}
                 <button
                   type="submit"
                   disabled={creatingQuiz}
-                  className="w-full py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-500 to-orange-600 text-white cursor-pointer hover:opacity-90 disabled:opacity-40"
+                  className="w-full py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-500 to-orange-600 text-white cursor-pointer hover:opacity-90 disabled:opacity-40 shadow-lg shadow-amber-500/20"
                 >
-                  {creatingQuiz ? 'Publishing...' : 'Publish Quiz & Question'}
+                  {creatingQuiz
+                    ? 'Publishing Quiz...'
+                    : `Publish Quiz (${questionList.length} ${questionList.length === 1 ? 'Question' : 'Questions'})`}
                 </button>
               </form>
             </motion.div>
