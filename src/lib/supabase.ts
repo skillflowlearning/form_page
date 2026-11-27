@@ -17,4 +17,10 @@ function sanitizeUrl(url: string | undefined): string {
 const supabaseUrl = sanitizeUrl(rawUrl)
 const supabaseAnonKey = rawKey?.trim() || 'placeholder-key'
 
-export const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createSupabaseClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    detectSessionInUrl: true,
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+})
