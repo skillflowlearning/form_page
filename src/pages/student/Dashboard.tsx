@@ -406,16 +406,16 @@ export default function StudentDashboard() {
       </AnimatePresence>
 
       {/* 2. Top Header Bar (Laptop & Mobile) */}
-      <header className="w-full border-b border-white/[0.08] bg-[#070d1a]/80 backdrop-blur-xl sticky top-0 z-40 px-4 md:px-8 py-3.5 flex items-center justify-between">
+      <header className="w-full border-b border-[#0A0A0A]/10 bg-white/90 backdrop-blur-xl sticky top-0 z-40 px-4 md:px-8 py-3.5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-white shadow-md shadow-indigo-500/20">
+          <div className="w-9 h-9 rounded-xl bg-[#0A0A0A] flex items-center justify-center font-bold text-white shadow-sm">
             {(profile?.name || profile?.email || 'S')[0].toUpperCase()}
           </div>
           <div>
-            <span className="text-[10px] md:text-[11px] font-bold tracking-widest uppercase text-indigo-400 block">
+            <span className="text-[10px] md:text-[11px] font-bold tracking-widest uppercase text-[#439775] block">
               SkillFlow Student
             </span>
-            <h1 className="text-base md:text-lg font-bold font-['Space_Grotesk'] text-white leading-tight">
+            <h1 className="text-base md:text-lg font-bold font-['Space_Grotesk'] text-[#0A0A0A] leading-tight">
               {profile?.name ? `Hey, ${profile.name}` : 'Student Portal'}
             </h1>
           </div>
@@ -433,7 +433,7 @@ export default function StudentDashboard() {
         {/* Quick Logout Button */}
         <button
           onClick={handleLogout}
-          className="hidden md:inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-xs font-semibold transition-all cursor-pointer"
+          className="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FF0F67]/15 hover:bg-[#FF0F67]/25 text-[#FF0F67] text-xs font-semibold transition-all cursor-pointer"
         >
           <LogOut className="w-3.5 h-3.5" /> Logout
         </button>

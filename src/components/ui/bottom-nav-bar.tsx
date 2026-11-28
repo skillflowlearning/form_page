@@ -35,7 +35,7 @@ export function BottomNavBar({
       role="navigation"
       aria-label="Navigation Bar"
       className={cn(
-        "bg-[#070d1a]/90 backdrop-blur-xl border border-white/[0.1] rounded-full flex items-center p-1.5 shadow-[0_10px_35px_rgba(0,0,0,0.5)] space-x-1 min-w-[280px] max-w-[95vw] h-[52px]",
+        "bg-white/95 backdrop-blur-xl border border-[#0A0A0A]/10 rounded-full flex items-center p-1.5 shadow-[0_8px_28px_rgba(10,10,10,0.08)] space-x-1 min-w-[280px] max-w-[95vw] h-[52px]",
         stickyBottom && "fixed inset-x-0 bottom-4 mx-auto z-40 w-fit",
         className,
       )}
@@ -51,8 +51,8 @@ export function BottomNavBar({
             className={cn(
               "flex items-center gap-0 px-3.5 py-2 rounded-full transition-all duration-200 relative h-9 min-w-[42px] cursor-pointer",
               isActive
-                ? "bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 gap-2 shadow-[0_0_15px_rgba(99,102,241,0.2)]"
-                : "bg-transparent text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]",
+                ? "bg-[#0A0A0A] text-white gap-2 shadow-sm"
+                : "bg-transparent text-[#222222]/60 hover:text-[#0A0A0A] hover:bg-[#f0f0f0]",
               "focus:outline-none focus-visible:ring-0",
             )}
             onClick={() => onChange(idx)}
@@ -83,7 +83,7 @@ export function BottomNavBar({
               <span
                 className={cn(
                   "font-bold text-xs whitespace-nowrap select-none overflow-hidden text-ellipsis font-['Space_Grotesk'] tracking-wider",
-                  isActive ? "text-indigo-400" : "opacity-0",
+                  isActive ? "text-white" : "opacity-0",
                 )}
                 title={item.label}
               >
