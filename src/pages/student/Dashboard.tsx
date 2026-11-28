@@ -386,7 +386,11 @@ export default function StudentDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#03060f] text-slate-100 flex flex-col font-sans select-none overflow-x-hidden">
+    <div
+      className={`min-h-screen flex flex-col font-sans select-none overflow-x-hidden transition-colors duration-200 ${
+        currentTab === 'home' ? 'bg-white text-[#0A0A0A]' : 'bg-[#03060f] text-slate-100'
+      }`}
+    >
 
       {/* 1. Welcome AlertCard Modal */}
       <AnimatePresence>
