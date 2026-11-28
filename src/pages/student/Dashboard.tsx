@@ -2,9 +2,10 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
+import { getLeaderboard, getMyRank, type RankedStudent } from '@/lib/leaderboard'
 import { 
   Home, Zap, MessageSquare, Trophy, Star, TrendingUp, 
-  CheckCircle2, ArrowLeft, Loader2, Sparkles, LogOut, 
+  CheckCircle2, XCircle, ArrowLeft, Loader2, Sparkles, LogOut, 
   Mail, Shield, ChevronRight, Lock, User, Clock
 } from 'lucide-react'
 import BottomNavBar, { type NavItem } from '@/components/ui/bottom-nav-bar'
@@ -12,10 +13,22 @@ import { AlertCard } from '@/components/ui/card-8'
 
 type TabId = 'home' | 'quiz' | 'community' | 'rewards' | 'settings'
 
-interface LeaderboardEntry {
+interface QuizReviewItem {
   id: string
-  name?: string
-  total_score: number
+  question_text: string
+  options: string[]
+  selected_option: number | null
+  correct_option: number
+  is_correct: boolean
+}
+
+interface QuizResultData {
+  score: number
+  total: number
+  wrong: number
+  unanswered: number
+  autoSubmitted?: boolean
+  review: QuizReviewItem[]
 }
 
 interface Quiz {
@@ -58,7 +71,7 @@ export default function StudentDashboard() {
   const [showWelcome, setShowWelcome] = useState(false)
 
   // Leaderboard
-  const [leaderboard, setLeaderboard] = useState<{ top3: LeaderboardEntry[]; myRank: number | null } | null>(null)
+  const [leaderboard, setLeaderboard] = useState<{ top3: RankedStudent[]; myRank: number | null; myScore: number } | null>(null)
 
   // Quiz State
   const [quizzes, setQuizzes] = useState<Quiz[]>([])
@@ -67,7 +80,7 @@ export default function StudentDashboard() {
   const [currentQ, setCurrentQ] = useState(0)
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({})
   const [quizScreen, setQuizScreen] = useState<'list' | 'quiz' | 'result'>('list')
-  const [quizResult, setQuizResult] = useState<{ score: number; total: number; autoSubmitted?: boolean } | null>(null)
+  const [quizResult, setQuizResult] = useState<QuizResultData | null>(null)
   const [submittingQuiz, setSubmittingQuiz] = useState(false)
   const [timeLeft, setTimeLeft] = useState<number>(0)
   const submittingRef = useRef(false)
@@ -125,29 +138,16 @@ export default function StudentDashboard() {
         setShowWelcome(false)
       }
 
-      // Fetch leaderboard
-      const { data: top3 } = await supabase
-        .from('profiles')
-        .select('id, name, total_score')
-        .order('total_score', { ascending: false })
-        .limit(3)
-
-      const { data: allProfiles } = await supabase
-        .from('profiles')
-        .select('id')
-        .order('total_score', { ascending: false })
-
-      let rank = 1
-      if (allProfiles) {
-        for (const p of allProfiles) {
-          if (p.id === user.id) break
-          rank++
-        }
-      }
+      // Fetch leaderboard using SQL RANK() helper
+      const [{ top3 }, myStanding] = await Promise.all([
+        getLeaderboard(),
+        getMyRank(user.id),
+      ])
 
       setLeaderboard({
-        top3: top3 || [],
-        myRank: rank,
+        top3,
+        myRank: myStanding.rank,
+        myScore: myStanding.total_score ?? currentProf.total_score ?? 0,
       })
 
       // Fetch quizzes
@@ -184,6 +184,18 @@ export default function StudentDashboard() {
     init()
   }, [navigate])
 
+  const refreshLeaderboard = useCallback(async (studentId: string) => {
+    const [{ top3 }, myStanding] = await Promise.all([
+      getLeaderboard(),
+      getMyRank(studentId),
+    ])
+    setLeaderboard({
+      top3,
+      myRank: myStanding.rank,
+      myScore: myStanding.total_score,
+    })
+  }, [])
+
   const refreshQuizzes = useCallback(async (studentId: string) => {
     const [{ data: qzList }, { data: attempts }] = await Promise.all([
       supabase
@@ -205,17 +217,20 @@ export default function StudentDashboard() {
     })))
   }, [])
 
-  // Real-time subscription + refresh when switching to Quiz tab
+  // Refresh quizzes or leaderboard when switching tabs
   useEffect(() => {
     if (!profile?.id) return
     if (currentTab === 'quiz' && quizScreen === 'list') {
       refreshQuizzes(profile.id)
+    } else if (currentTab === 'home') {
+      refreshLeaderboard(profile.id)
     }
-  }, [currentTab, quizScreen, profile?.id, refreshQuizzes])
+  }, [currentTab, quizScreen, profile?.id, refreshQuizzes, refreshLeaderboard])
 
+  // Real-time subscriptions for quizzes and profile score updates
   useEffect(() => {
     if (!profile?.id) return
-    const channel = supabase
+    const quizChannel = supabase
       .channel('quizzes-realtime-feed')
       .on(
         'postgres_changes',
@@ -226,10 +241,22 @@ export default function StudentDashboard() {
       )
       .subscribe()
 
+    const leaderboardChannel = supabase
+      .channel('leaderboard-realtime-feed')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'profiles' },
+        () => {
+          refreshLeaderboard(profile.id)
+        }
+      )
+      .subscribe()
+
     return () => {
-      supabase.removeChannel(channel)
+      supabase.removeChannel(quizChannel)
+      supabase.removeChannel(leaderboardChannel)
     }
-  }, [profile?.id, refreshQuizzes])
+  }, [profile?.id, refreshQuizzes, refreshLeaderboard])
 
   const handleCloseWelcome = async () => {
     setShowWelcome(false)
@@ -265,26 +292,65 @@ export default function StudentDashboard() {
     setSubmittingQuiz(true)
 
     let score = 0
-    questions.forEach(q => {
-      if (selectedAnswers[q.id] === q.correct_option) score++
+    let wrong = 0
+    let unanswered = 0
+
+    const review: QuizReviewItem[] = questions.map(q => {
+      const selectedOpt = selectedAnswers[q.id] !== undefined ? selectedAnswers[q.id] : null
+      const isCorrect = selectedOpt === q.correct_option
+      if (selectedOpt === null) {
+        unanswered++
+      } else if (isCorrect) {
+        score++
+      } else {
+        wrong++
+      }
+      return {
+        id: q.id,
+        question_text: q.question_text,
+        options: q.options,
+        selected_option: selectedOpt,
+        correct_option: q.correct_option,
+        is_correct: isCorrect,
+      }
     })
 
-    const { error } = await supabase.from('attempts').insert({
+    // Save attempt with answers jsonb; fallback without answers if column not migrated yet
+    let { error } = await supabase.from('attempts').insert({
       student_id: profile.id,
       quiz_id: activeQuiz.id,
       score,
+      answers: selectedAnswers,
     })
+
+    if (error && error.message?.toLowerCase().includes('answers')) {
+      const fallbackRes = await supabase.from('attempts').insert({
+        student_id: profile.id,
+        quiz_id: activeQuiz.id,
+        score,
+      })
+      error = fallbackRes.error
+    }
 
     setSubmittingQuiz(false)
     if (!error) {
-      setQuizResult({ score, total: questions.length, autoSubmitted: isAutoSubmit })
+      setQuizResult({
+        score,
+        total: questions.length,
+        wrong,
+        unanswered,
+        autoSubmitted: isAutoSubmit,
+        review,
+      })
       setQuizScreen('result')
       setProfile((prev: any) => ({ ...prev, total_score: (prev.total_score || 0) + score }))
       setQuizzes(prev => prev.map(q => q.id === activeQuiz.id ? { ...q, attempted: true, score } : q))
+      // Refresh leaderboard immediately after score update
+      refreshLeaderboard(profile.id)
     } else {
       submittingRef.current = false
     }
-  }, [activeQuiz, profile?.id, questions, selectedAnswers])
+  }, [activeQuiz, profile?.id, questions, selectedAnswers, refreshLeaderboard])
 
   // Countdown timer effect for active quiz
   useEffect(() => {
@@ -492,30 +558,78 @@ export default function StudentDashboard() {
                 </div>
 
                 {/* Right Col: Leaderboard */}
-                <div className="rounded-3xl bg-white/[0.03] border border-white/[0.07] p-6 h-fit">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Trophy className="w-5 h-5 text-amber-400" />
-                    <h3 className="text-base font-bold font-['Space_Grotesk'] text-white">Top 3 Leaderboard</h3>
+                <div className="rounded-3xl bg-white/[0.03] border border-white/[0.07] p-6 h-fit flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Trophy className="w-5 h-5 text-amber-400" />
+                      <h3 className="text-base font-bold font-['Space_Grotesk'] text-white">Top 3 Leaderboard</h3>
+                    </div>
+                    <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                      Live
+                    </span>
                   </div>
 
-                  <div className="flex flex-col divide-y divide-white/[0.05]">
-                    {(leaderboard?.top3 || []).map((entry, idx) => (
-                      <div key={entry.id} className="py-3.5 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl">{medals[idx]?.emoji || '🎖️'}</span>
-                          <div>
-                            <p className="text-sm font-semibold text-white">{entry.name || 'Student'}</p>
-                            <p className="text-xs text-slate-400">{medals[idx]?.label} Place</p>
+                  <div className="flex flex-col gap-2.5">
+                    {(leaderboard?.top3 || []).map((entry, idx) => {
+                      const badgeStyles = [
+                        'bg-amber-500/15 border-amber-400/40 text-amber-300',
+                        'bg-slate-400/15 border-slate-300/30 text-slate-200',
+                        'bg-orange-600/15 border-orange-500/30 text-orange-300',
+                      ]
+                      return (
+                        <div
+                          key={entry.id}
+                          className={`p-3 rounded-2xl border flex items-center justify-between transition-all ${
+                            entry.id === profile?.id
+                              ? 'bg-indigo-500/15 border-indigo-400/40'
+                              : 'bg-white/[0.02] border-white/[0.06]'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className={`w-9 h-9 rounded-xl border flex items-center justify-center text-sm font-extrabold shrink-0 ${badgeStyles[idx] || badgeStyles[2]}`}>
+                              {medals[idx]?.emoji || `#${entry.rank}`}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-white truncate">
+                                {entry.name || 'Student'}
+                                {entry.id === profile?.id && (
+                                  <span className="ml-1.5 text-[10px] text-indigo-300 font-bold">(You)</span>
+                                )}
+                              </p>
+                              <p className="text-[11px] text-slate-400">
+                                Rank #{entry.rank} • {medals[idx]?.label || `${entry.rank}th`}
+                              </p>
+                            </div>
                           </div>
+                          <span className="text-sm font-bold font-['Space_Grotesk'] text-amber-400 shrink-0">
+                            {entry.total_score} pts
+                          </span>
                         </div>
-                        <span className="text-sm font-bold font-['Space_Grotesk'] text-amber-400">
-                          {entry.total_score} pts
-                        </span>
-                      </div>
-                    ))}
+                      )
+                    })}
                     {(leaderboard?.top3 || []).length === 0 && (
                       <p className="text-xs text-slate-500 text-center py-4">No scores yet. Take a quiz to top the board!</p>
                     )}
+                  </div>
+
+                  {/* Current Student's Own Rank Card */}
+                  <div className="rounded-2xl p-4 bg-gradient-to-r from-indigo-500/15 to-purple-500/15 border border-indigo-400/30 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] uppercase tracking-wider font-bold text-indigo-300 block">
+                        Your Standing
+                      </span>
+                      <p className="text-sm font-bold text-white mt-0.5">
+                        Your Rank: #{leaderboard?.myRank ?? '—'}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400 block">
+                        Score
+                      </span>
+                      <span className="text-base font-extrabold font-['Space_Grotesk'] text-indigo-300">
+                        {leaderboard?.myScore ?? profile?.total_score ?? 0} pts
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -698,24 +812,115 @@ export default function StudentDashboard() {
               )}
 
               {quizScreen === 'result' && quizResult && (
-                <div className="text-center py-10 flex flex-col items-center gap-5">
-                  <div className="w-28 h-28 rounded-full bg-emerald-500/10 border-2 border-emerald-500/30 flex items-center justify-center text-4xl font-extrabold text-emerald-400 font-['Space_Grotesk'] shadow-[0_0_40px_rgba(34,197,94,0.15)]">
-                    {quizResult.total > 0 ? Math.round((quizResult.score / quizResult.total) * 100) : 0}%
+                <div className="py-6 flex flex-col gap-6">
+                  {/* Top Summary Card */}
+                  <div className="rounded-3xl p-6 md:p-8 bg-white/[0.03] border border-white/[0.08] text-center flex flex-col items-center gap-4">
+                    <div className="w-24 h-24 rounded-full bg-emerald-500/10 border-2 border-emerald-500/30 flex items-center justify-center text-3xl font-extrabold text-emerald-400 font-['Space_Grotesk'] shadow-[0_0_40px_rgba(34,197,94,0.15)]">
+                      {quizResult.total > 0 ? Math.round((quizResult.score / quizResult.total) * 100) : 0}%
+                    </div>
+                    <div>
+                      <h3 className="text-2xl md:text-3xl font-bold font-['Space_Grotesk'] text-white">
+                        {quizResult.autoSubmitted ? "Time's Up! Quiz Auto-Submitted" : 'Quiz Completed!'}
+                      </h3>
+                      <p className="text-base md:text-lg text-slate-200 mt-1 font-semibold">
+                        <span className="text-emerald-400">{quizResult.score} / {quizResult.total}</span> correct
+                      </p>
+                    </div>
+
+                    {/* Correct / Wrong / Skipped Badges */}
+                    <div className="grid grid-cols-3 gap-2.5 w-full max-w-sm mt-1">
+                      <div className="rounded-xl p-3 bg-emerald-500/10 border border-emerald-500/20">
+                        <span className="text-[11px] uppercase font-bold text-emerald-400 block">Correct</span>
+                        <span className="text-lg font-extrabold text-white">{quizResult.score}</span>
+                      </div>
+                      <div className="rounded-xl p-3 bg-red-500/10 border border-red-500/20">
+                        <span className="text-[11px] uppercase font-bold text-red-400 block">Wrong</span>
+                        <span className="text-lg font-extrabold text-white">{quizResult.wrong}</span>
+                      </div>
+                      <div className="rounded-xl p-3 bg-slate-500/10 border border-slate-500/20">
+                        <span className="text-[11px] uppercase font-bold text-slate-400 block">Skipped</span>
+                        <span className="text-lg font-extrabold text-white">{quizResult.unanswered}</span>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => setQuizScreen('list')}
+                      className="w-full max-w-xs py-3.5 rounded-xl font-bold text-sm bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer mt-2"
+                    >
+                      Back to Contests
+                    </button>
                   </div>
-                  <div>
-                    <h3 className="text-2xl md:text-3xl font-bold font-['Space_Grotesk'] text-white">
-                      {quizResult.autoSubmitted ? "Time's Up! Quiz Auto-Submitted" : 'Quiz Completed!'}
-                    </h3>
-                    <p className="text-sm md:text-base text-slate-300 mt-1">
-                      You scored <strong className="text-indigo-400 font-bold">{quizResult.score}</strong> out of {quizResult.total} points
-                    </p>
+
+                  {/* Question-by-Question Review */}
+                  <div className="flex flex-col gap-3">
+                    <h4 className="text-sm font-bold uppercase tracking-wider text-slate-400">
+                      Detailed Answer Review ({quizResult.review.length} Questions)
+                    </h4>
+
+                    {quizResult.review.map((item, idx) => (
+                      <div
+                        key={item.id}
+                        className={`rounded-2xl p-5 border flex flex-col gap-3 ${
+                          item.is_correct
+                            ? 'bg-emerald-950/15 border-emerald-500/25'
+                            : 'bg-red-950/15 border-red-500/25'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="text-sm md:text-base font-medium text-white leading-snug">
+                            <span className="text-slate-400 font-bold mr-2">Q{idx + 1}.</span>
+                            {item.question_text}
+                          </p>
+                          {item.is_correct ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 text-[11px] font-bold shrink-0">
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Correct
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-500/15 text-red-400 text-[11px] font-bold shrink-0">
+                              <XCircle className="w-3.5 h-3.5" /> {item.selected_option === null ? 'Skipped' : 'Wrong'}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                          {item.options.map((opt, optIdx) => {
+                            const isSelected = item.selected_option === optIdx
+                            const isCorrectOpt = item.correct_option === optIdx
+
+                            let styleClass = 'bg-white/[0.02] border-white/[0.06] text-slate-400'
+                            let tag: string | null = null
+
+                            if (isCorrectOpt) {
+                              styleClass = 'bg-emerald-500/15 border-emerald-500/50 text-emerald-200 font-medium'
+                              tag = isSelected ? 'Your Answer ✓' : 'Correct Answer ✓'
+                            } else if (isSelected && !item.is_correct) {
+                              styleClass = 'bg-red-500/15 border-red-500/50 text-red-200 font-medium'
+                              tag = 'Your Answer ✗'
+                            }
+
+                            return (
+                              <div
+                                key={optIdx}
+                                className={`px-3.5 py-2.5 rounded-xl border text-xs md:text-sm flex items-center justify-between gap-2 ${styleClass}`}
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <span className="font-bold shrink-0">{String.fromCharCode(65 + optIdx)}.</span>
+                                  <span className="truncate">{opt}</span>
+                                </div>
+                                {tag && (
+                                  <span className={`text-[10px] font-bold uppercase tracking-wider shrink-0 ${
+                                    isCorrectOpt ? 'text-emerald-400' : 'text-red-400'
+                                  }`}>
+                                    {tag}
+                                  </span>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <button
-                    onClick={() => setQuizScreen('list')}
-                    className="w-full max-w-xs py-3.5 rounded-xl font-bold text-sm bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer mt-3"
-                  >
-                    Back to Contests
-                  </button>
                 </div>
               )}
             </motion.div>

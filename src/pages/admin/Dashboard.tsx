@@ -1,21 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
+import { getLeaderboard, type RankedStudent } from '@/lib/leaderboard'
 import { 
   Home, Zap, MessageSquare, Settings, Users, 
   UserPlus, LogOut, Loader2, CheckCircle2, AlertCircle,
-  Plus, Trash2, Clock
+  Plus, Trash2, Clock, Trophy, ChevronDown, ChevronUp
 } from 'lucide-react'
 import BottomNavBar, { type NavItem } from '@/components/ui/bottom-nav-bar'
 
 type AdminTab = 'overview' | 'quizzes' | 'broadcast' | 'users' | 'settings'
-
-interface LeaderboardEntry {
-  id: string
-  name?: string
-  total_score: number
-}
 
 interface QuestionDraft {
   question_text: string
@@ -43,7 +38,9 @@ export default function AdminDashboard() {
 
   // Stats
   const [stats, setStats] = useState({ students: 0, quizzes: 0 })
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
+  const [leaderboard, setLeaderboard] = useState<RankedStudent[]>([])
+  const [allRanked, setAllRanked] = useState<RankedStudent[]>([])
+  const [showAllLeaderboard, setShowAllLeaderboard] = useState(false)
 
   // Quiz Creator Form
   const [qTitle, setQTitle] = useState('')
@@ -92,16 +89,17 @@ export default function AdminDashboard() {
 
       setProfile(prof || { email: user.email, name: 'Admin', role: 'admin' })
 
-      // Fetch Stats
-      const [{ count: studentCount }, { count: quizCount }, { data: top3 }, { data: msgs }] = await Promise.all([
+      // Fetch Stats & Leaderboard
+      const [{ count: studentCount }, { count: quizCount }, lbData, { data: msgs }] = await Promise.all([
         supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student'),
         supabase.from('quizzes').select('*', { count: 'exact', head: true }),
-        supabase.from('profiles').select('id, name, total_score').order('total_score', { ascending: false }).limit(3),
+        getLeaderboard(),
         supabase.from('community_messages').select('*').order('created_at', { ascending: false }).limit(10),
       ])
 
       setStats({ students: studentCount || 0, quizzes: quizCount || 0 })
-      setLeaderboard(top3 || [])
+      setLeaderboard(lbData.top3)
+      setAllRanked(lbData.allRanked)
       setRecentMsgs(msgs || [])
 
       setLoading(false)
@@ -109,6 +107,39 @@ export default function AdminDashboard() {
 
     init()
   }, [navigate])
+
+  const refreshAdminLeaderboard = useCallback(async () => {
+    const [{ count: studentCount }, lbData] = await Promise.all([
+      supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student'),
+      getLeaderboard(),
+    ])
+    setStats(prev => ({ ...prev, students: studentCount ?? prev.students }))
+    setLeaderboard(lbData.top3)
+    setAllRanked(lbData.allRanked)
+  }, [])
+
+  useEffect(() => {
+    if (currentTab === 'overview' && !loading) {
+      refreshAdminLeaderboard()
+    }
+  }, [currentTab, loading, refreshAdminLeaderboard])
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-leaderboard-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'profiles' },
+        () => {
+          refreshAdminLeaderboard()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [refreshAdminLeaderboard])
 
   // Question Draft Helpers (1 to 15 questions)
   const handleAddQuestion = () => {
@@ -358,23 +389,79 @@ export default function AdminDashboard() {
               </div>
 
               {/* Leaderboard */}
-              <div className="rounded-3xl bg-white/[0.03] border border-white/[0.07] p-6">
-                <h3 className="text-base font-bold font-['Space_Grotesk'] text-white mb-4">Top 3 Performing Students</h3>
-                <div className="divide-y divide-white/[0.05]">
-                  {leaderboard.map((item, idx) => (
-                    <div key={item.id} className="py-3 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">{medals[idx]?.emoji}</span>
-                        <div>
-                          <p className="text-sm font-semibold text-white">{item.name || 'Student'}</p>
-                          <p className="text-xs text-slate-400">{medals[idx]?.label} Place</p>
+              <div className="rounded-3xl bg-white/[0.03] border border-white/[0.07] p-6 flex flex-col gap-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <Trophy className="w-5 h-5 text-amber-400" />
+                    <h3 className="text-base font-bold font-['Space_Grotesk'] text-white">Top 3 Performing Students</h3>
+                  </div>
+
+                  {allRanked.length > 3 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllLeaderboard(prev => !prev)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-xs font-semibold text-slate-200 cursor-pointer transition-colors"
+                    >
+                      {showAllLeaderboard ? (
+                        <>Hide All <ChevronUp className="w-3.5 h-3.5" /></>
+                      ) : (
+                        <>View All ({allRanked.length}) <ChevronDown className="w-3.5 h-3.5" /></>
+                      )}
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-2.5">
+                  {leaderboard.map((item, idx) => {
+                    const badgeStyles = [
+                      'bg-amber-500/15 border-amber-400/40 text-amber-300',
+                      'bg-slate-400/15 border-slate-300/30 text-slate-200',
+                      'bg-orange-600/15 border-orange-500/30 text-orange-300',
+                    ]
+                    return (
+                      <div key={item.id} className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.06] flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-9 h-9 rounded-xl border flex items-center justify-center text-sm font-extrabold ${badgeStyles[idx] || badgeStyles[2]}`}>
+                            {medals[idx]?.emoji || `#${item.rank}`}
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-white">{item.name || 'Student'}</p>
+                            <p className="text-xs text-slate-400">Rank #{item.rank} • {medals[idx]?.label || `${item.rank}th`} Place</p>
+                          </div>
                         </div>
+                        <span className="text-sm font-bold text-amber-400 font-['Space_Grotesk']">{item.total_score} pts</span>
                       </div>
-                      <span className="text-sm font-bold text-amber-400 font-['Space_Grotesk']">{item.total_score} pts</span>
-                    </div>
-                  ))}
+                    )
+                  })}
                   {leaderboard.length === 0 && <p className="text-xs text-slate-500 py-3 text-center">No scores yet.</p>}
                 </div>
+
+                {/* Expandable Full Ranked Student List */}
+                <AnimatePresence>
+                  {showAllLeaderboard && allRanked.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden border-t border-white/[0.07] pt-4"
+                    >
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
+                        All Ranked Students ({allRanked.length})
+                      </h4>
+                      <div className="flex flex-col divide-y divide-white/[0.05] max-h-80 overflow-y-auto pr-1">
+                        {allRanked.map(student => (
+                          <div key={student.id} className="py-2.5 flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-3">
+                              <span className="w-8 text-xs font-mono font-bold text-indigo-400">#{student.rank}</span>
+                              <span className="text-slate-200 font-medium">{student.name}</span>
+                            </div>
+                            <span className="font-bold font-['Space_Grotesk'] text-amber-400">{student.total_score} pts</span>
+                          </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </motion.div>
           )}
