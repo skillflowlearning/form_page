@@ -562,24 +562,12 @@ export default function StudentDashboard() {
         )}
       </AnimatePresence>
 
-      {/* 2. Top Header Bar (Laptop & Mobile) */}
-      <header className="w-full border-b border-[#0A0A0A]/10 bg-white/90 backdrop-blur-xl sticky top-0 z-40 px-3.5 sm:px-4 md:px-8 py-3 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-          <div className="w-9 h-9 rounded-xl bg-[#0A0A0A] flex items-center justify-center font-bold text-white shadow-sm shrink-0">
-            {(profile?.name || profile?.email || 'S')[0].toUpperCase()}
-          </div>
-          <div className="min-w-0">
-            <span className="text-[10px] md:text-[11px] font-bold tracking-widest uppercase text-[#439775] block">
-              SkillFlow Student
-            </span>
-            <h1 className="text-sm sm:text-base md:text-lg font-bold font-['Space_Grotesk'] text-[#0A0A0A] leading-tight truncate max-w-[200px] sm:max-w-none">
-              {profile?.name ? `Hey, ${profile.name}` : 'Student Portal'}
-            </h1>
-          </div>
-        </div>
+      {/* 2. Top Header Bar (Desktop) */}
+      <header className="hidden md:flex w-full border-b border-[#0A0A0A]/10 bg-white/90 backdrop-blur-xl sticky top-0 z-40 px-8 py-3 items-center justify-between gap-2">
+        <div className="w-24 shrink-0" aria-hidden="true" />
 
         {/* Desktop Dynamic Slide Pill Navbar in Header */}
-        <div className="hidden md:flex items-center">
+        <div className="flex items-center">
           <BottomNavBar
             items={navItems}
             activeIndex={activeTabIdx}
@@ -590,7 +578,7 @@ export default function StudentDashboard() {
         {/* Quick Logout Button */}
         <button
           onClick={handleLogout}
-          className="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FF0F67]/15 hover:bg-[#FF0F67]/25 text-[#FF0F67] text-xs font-semibold transition-all cursor-pointer shrink-0"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FF0F67]/15 hover:bg-[#FF0F67]/25 text-[#FF0F67] text-xs font-semibold transition-all cursor-pointer shrink-0"
         >
           <LogOut className="w-3.5 h-3.5" /> Logout
         </button>
