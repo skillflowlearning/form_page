@@ -1,11 +1,11 @@
 import { cn } from "@/lib/utils";
 import { Gift, Trophy, Crown, Target, BookOpen, Zap, ArrowUpRight } from "lucide-react";
-import type { RankedStudent } from "@/lib/leaderboard";
+import type { WeeklyRankedStudent } from "@/lib/quiz-backend";
 
 export interface ColorfulBentoGridProps {
   totalScore: number;
   myRank: number | null;
-  top3: RankedStudent[];
+  weeklyWinners: WeeklyRankedStudent[];
   playedCount: number;
   totalQuizzes: number;
   availableCount: number;
@@ -17,7 +17,7 @@ export interface ColorfulBentoGridProps {
 export const ColorfulBentoGrid = ({
   totalScore,
   myRank,
-  top3,
+  weeklyWinners,
   playedCount,
   totalQuizzes,
   availableCount,
@@ -105,37 +105,37 @@ export const ColorfulBentoGrid = ({
           </div>
         </div>
 
-        {/* Card 2 (Lavender): Top 3 Leaderboard */}
+        {/* Card 2 (Lavender): Weekly Winners */}
         <div className="overflow-hidden md:hover:scale-105 hover:shadow-[-6px_6px_32px_8px_rgba(192,192,192,0.25)] hover:rotate-3 transition-all duration-200 ease-in-out relative bg-[#454ADE]/20 min-h-[300px] sm:h-[330px] rounded-xl flex flex-col items-center justify-between px-4 py-6">
           <div className="flex flex-col items-center justify-center gap-1">
             <p className="rotate-6 mb-1 text-sm font-medium text-[#0A0A0A]">
-              Live Standings
+              Weekly Winners
             </p>
             <h3 className="rotate-6 text-xl sm:text-2xl font-semibold text-center px-6 py-2 bg-[#0A0A0A]/90 text-white rounded-full inline-flex items-center gap-2">
               <Crown className="w-4 h-4 text-[#FFF07C]" />
-              Top 3 Leaders
+              Weekly Winners
             </h3>
           </div>
 
           <div className="w-full flex flex-col gap-2 mt-3">
-            {top3.map((entry) => (
+            {weeklyWinners.map((entry) => (
               <div
-                key={entry.id}
+                key={entry.student_id}
                 className={cn(
                   "w-full px-3.5 py-2 rounded-xl flex items-center justify-between text-xs font-medium bg-white/80 text-[#0A0A0A]",
-                  entry.id === currentUserId && "ring-2 ring-[#454ADE]"
+                  entry.student_id === currentUserId && "ring-2 ring-[#454ADE]"
                 )}
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="font-bold text-[#454ADE]">#{entry.rank}</span>
                   <span className="truncate font-semibold">{entry.name}</span>
                 </div>
-                <span className="font-bold shrink-0">{entry.total_score} pts</span>
+                <span className="font-bold shrink-0">{entry.weekly_score} pts</span>
               </div>
             ))}
-            {top3.length === 0 && (
+            {weeklyWinners.length === 0 && (
               <p className="text-xs text-[#222222]/60 text-center py-4">
-                No scores recorded yet.
+                No weekly scores yet.
               </p>
             )}
           </div>
