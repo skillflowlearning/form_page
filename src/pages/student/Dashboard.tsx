@@ -4,13 +4,13 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { getLeaderboard, getMyRank, type RankedStudent } from '@/lib/leaderboard'
 import { 
-  Home, Zap, MessageSquare, Trophy, TrendingUp, 
+  Home, Zap, MessageSquare, Trophy, 
   CheckCircle2, XCircle, ArrowLeft, Loader2, Sparkles, LogOut, 
-  Mail, Shield, ChevronRight, Lock, User, Clock,
-  Crown, Target, BookOpen
+  Mail, Shield, ChevronRight, Lock, User, Clock
 } from 'lucide-react'
 import BottomNavBar, { type NavItem } from '@/components/ui/bottom-nav-bar'
 import { AlertCard } from '@/components/ui/card-8'
+import { ColorfulBentoGrid } from '@/components/ui/colorful-bento-grid'
 
 type TabId = 'home' | 'quiz' | 'community' | 'rewards' | 'settings'
 
@@ -57,12 +57,6 @@ interface CommunityMsg {
     email?: string
   }
 }
-
-const medals = [
-  { label: '1st', color: '#f59e0b', emoji: '🥇' },
-  { label: '2nd', color: '#94a3b8', emoji: '🥈' },
-  { label: '3rd', color: '#b45309', emoji: '🥉' },
-]
 
 export default function StudentDashboard() {
   const navigate = useNavigate()
@@ -422,7 +416,7 @@ export default function StudentDashboard() {
               SkillFlow Student
             </span>
             <h1 className="text-base md:text-lg font-bold font-['Space_Grotesk'] text-white leading-tight">
-              {profile?.name ? `Hey, ${profile.name} 👋` : 'Student Portal'}
+              {profile?.name ? `Hey, ${profile.name}` : 'Student Portal'}
             </h1>
           </div>
         </div>
@@ -458,199 +452,16 @@ export default function StudentDashboard() {
               exit={{ opacity: 0, y: -10 }}
               className="flex flex-col gap-6"
             >
-              {/* Bento-Grid Layout: Mobile 1-col, Desktop 3-col */}
-              <div className="grid grid-cols-1 md:grid-cols-3 md:items-start gap-5 pt-2">
-                {/* 1. Bada Card (2-column span): Your Score */}
-                <div className="md:col-span-2 -rotate-1 md:hover:scale-[1.02] hover:rotate-1 hover:shadow-[-6px_6px_32px_8px_rgba(99,102,241,0.22)] transition-all duration-200 ease-in-out rounded-3xl p-6 md:p-8 relative overflow-hidden bg-gradient-to-br from-indigo-950/60 via-purple-950/30 to-black/80 border border-indigo-500/25 shadow-[0_0_30px_rgba(99,102,241,0.12)]">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                      <span className="inline-flex items-center gap-1.5 rotate-2 px-3.5 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-200 text-[11px] font-bold uppercase tracking-wider mb-3">
-                        <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
-                        Current Score
-                      </span>
-                      <div className="text-5xl md:text-6xl font-extrabold font-['Space_Grotesk'] bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-300 bg-clip-text text-transparent mt-1">
-                        {profile?.total_score ?? 0}
-                      </div>
-                      <p className="text-xs md:text-sm text-indigo-300 mt-2 font-medium">
-                        {leaderboard?.myRank ? `Overall Rank #${leaderboard.myRank}` : 'Participate to rank!'}
-                      </p>
-                    </div>
-
-                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center text-indigo-400 rotate-12 shadow-[0_0_24px_rgba(99,102,241,0.2)] shrink-0">
-                      <Trophy className="w-8 h-8 md:w-10 md:h-10" />
-                    </div>
-                  </div>
-
-                  {/* Progress */}
-                  <div className="mt-6">
-                    <div className="flex justify-between text-xs font-semibold mb-2 text-slate-300">
-                      <span>Rank Progress</span>
-                      <span className="text-indigo-400">{Math.min(profile?.total_score || 0, 100)} / 100 pts</span>
-                    </div>
-                    <div className="h-2.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${Math.min(((profile?.total_score || 0) / 100) * 100, 100)}%` }}
-                        transition={{ duration: 1, ease: 'easeOut' }}
-                        className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* 2. Medium Card (Right Column): Top 3 Leaderboard */}
-                <div className="md:row-span-2 rotate-1 md:hover:scale-105 hover:-rotate-1 hover:shadow-[-6px_6px_32px_8px_rgba(245,158,11,0.18)] transition-all duration-200 ease-in-out rounded-3xl bg-white/[0.03] border border-white/[0.08] p-6 flex flex-col gap-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="inline-flex items-center gap-1.5 -rotate-3 px-3.5 py-1 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-300 text-[11px] font-bold uppercase tracking-wider">
-                      <Crown className="w-3.5 h-3.5 text-amber-400" />
-                      Top 3 Leaderboard
-                    </span>
-                    <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
-                      Live
-                    </span>
-                  </div>
-
-                  <div className="flex flex-col gap-2.5">
-                    {(leaderboard?.top3 || []).map((entry, idx) => {
-                      const badgeStyles = [
-                        'bg-amber-500/15 border-amber-400/40 text-amber-300',
-                        'bg-slate-400/15 border-slate-300/30 text-slate-200',
-                        'bg-orange-600/15 border-orange-500/30 text-orange-300',
-                      ]
-                      return (
-                        <div
-                          key={entry.id}
-                          className={`p-3 rounded-2xl border flex items-center justify-between transition-all ${
-                            entry.id === profile?.id
-                              ? 'bg-indigo-500/15 border-indigo-400/40'
-                              : 'bg-white/[0.02] border-white/[0.06]'
-                          }`}
-                        >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className={`w-9 h-9 rounded-xl border flex items-center justify-center text-sm font-extrabold shrink-0 ${badgeStyles[idx] || badgeStyles[2]}`}>
-                              {medals[idx]?.emoji || `#${entry.rank}`}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-sm font-semibold text-white truncate">
-                                {entry.name || 'Student'}
-                                {entry.id === profile?.id && (
-                                  <span className="ml-1.5 text-[10px] text-indigo-300 font-bold">(You)</span>
-                                )}
-                              </p>
-                              <p className="text-[11px] text-slate-400">
-                                Rank #{entry.rank} • {medals[idx]?.label || `${entry.rank}th`}
-                              </p>
-                            </div>
-                          </div>
-                          <span className="text-sm font-bold font-['Space_Grotesk'] text-amber-400 shrink-0">
-                            {entry.total_score} pts
-                          </span>
-                        </div>
-                      )
-                    })}
-                    {(leaderboard?.top3 || []).length === 0 && (
-                      <p className="text-xs text-slate-500 text-center py-4">No scores yet. Take a quiz to top the board!</p>
-                    )}
-                  </div>
-
-                  {/* Current Student's Own Rank Sub-Card */}
-                  <div className="rounded-2xl p-3.5 bg-gradient-to-r from-indigo-500/15 to-purple-500/15 border border-indigo-400/30 flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] uppercase tracking-wider font-bold text-indigo-300 block">
-                        Your Standing
-                      </span>
-                      <p className="text-sm font-bold text-white mt-0.5">
-                        Rank #{leaderboard?.myRank ?? '—'}
-                      </p>
-                    </div>
-                    <span className="text-sm font-extrabold font-['Space_Grotesk'] text-indigo-300">
-                      {leaderboard?.myScore ?? profile?.total_score ?? 0} pts
-                    </span>
-                  </div>
-                </div>
-
-                {/* 3. Chhota Card: Your Rank */}
-                <div className="rotate-2 md:hover:scale-105 hover:-rotate-2 hover:shadow-[-6px_6px_32px_8px_rgba(16,185,129,0.2)] transition-all duration-200 ease-in-out rounded-3xl p-6 bg-white/[0.03] border border-white/[0.08] flex flex-col justify-between gap-4 min-h-[168px]">
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center gap-1.5 -rotate-3 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-[11px] font-bold uppercase tracking-wider">
-                      <Target className="w-3.5 h-3.5 text-emerald-400" />
-                      Your Rank
-                    </span>
-                    <TrendingUp className="w-5 h-5 text-emerald-400/70 -rotate-12" />
-                  </div>
-                  <div>
-                    <div className="text-4xl font-extrabold font-['Space_Grotesk'] text-white">
-                      #{leaderboard?.myRank ?? '—'}
-                    </div>
-                    <p className="text-xs text-slate-400 mt-1">Global student standing</p>
-                  </div>
-                </div>
-
-                {/* 4. Chhota Card: Quizzes Played */}
-                <div
-                  onClick={() => setActiveTabIdx(1)}
-                  className="-rotate-2 md:hover:scale-105 hover:rotate-2 hover:shadow-[-6px_6px_32px_8px_rgba(168,85,247,0.22)] transition-all duration-200 ease-in-out rounded-3xl p-6 bg-white/[0.03] border border-white/[0.08] flex flex-col justify-between gap-4 min-h-[168px] cursor-pointer"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center gap-1.5 rotate-3 px-3 py-1 rounded-full bg-purple-500/15 border border-purple-400/30 text-purple-300 text-[11px] font-bold uppercase tracking-wider">
-                      <BookOpen className="w-3.5 h-3.5 text-purple-400" />
-                      Quizzes Played
-                    </span>
-                    <Zap className="w-5 h-5 text-purple-400/70 rotate-12" />
-                  </div>
-                  <div>
-                    <div className="text-4xl font-extrabold font-['Space_Grotesk'] text-white">
-                      {quizzes.filter(q => q.attempted).length}
-                    </div>
-                    <p className="text-xs text-slate-400 mt-1">
-                      of {quizzes.length} active contests • Tap to play →
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Active Contests Quick Launch */}
-              <div className="rounded-3xl p-6 bg-white/[0.03] border border-white/[0.07]">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-indigo-400" />
-                    <h3 className="text-base font-bold font-['Space_Grotesk'] text-white">Active Contests</h3>
-                  </div>
-                  <button onClick={() => setActiveTabIdx(1)} className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold cursor-pointer">
-                    View All →
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  {quizzes.slice(0, 3).map((q) => (
-                    <div
-                      key={q.id}
-                      onClick={() => !q.attempted && handleStartQuiz(q)}
-                      className={`rounded-2xl p-4 border flex items-center gap-3 transition-all duration-200 ${
-                        q.attempted
-                          ? 'bg-emerald-950/20 border-emerald-500/30 opacity-75'
-                          : 'bg-white/[0.02] border-white/[0.06] hover:border-indigo-500/40 hover:scale-[1.02] cursor-pointer'
-                      }`}
-                    >
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                        q.attempted ? 'bg-emerald-500/10 text-emerald-400' : 'bg-indigo-500/10 text-indigo-400'
-                      }`}>
-                        {q.attempted ? <CheckCircle2 className="w-5 h-5" /> : <Zap className="w-5 h-5" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-semibold text-white truncate">{q.title}</h4>
-                        <p className="text-xs text-slate-400">
-                          {q.attempted ? `Completed • ${q.score} pts` : `${q.duration_minutes || 8} min • Start`}
-                        </p>
-                      </div>
-                      {!q.attempted ? <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" /> : <Lock className="w-4 h-4 text-emerald-400 shrink-0" />}
-                    </div>
-                  ))}
-                  {quizzes.length === 0 && (
-                    <p className="text-xs text-slate-500 py-3 text-center md:col-span-3">No quizzes active right now.</p>
-                  )}
-                </div>
-              </div>
+              <ColorfulBentoGrid
+                totalScore={profile?.total_score ?? 0}
+                myRank={leaderboard?.myRank ?? null}
+                top3={leaderboard?.top3 || []}
+                playedCount={quizzes.filter(q => q.attempted).length}
+                totalQuizzes={quizzes.length}
+                availableCount={quizzes.filter(q => !q.attempted).length}
+                currentUserId={profile?.id}
+                onOpenQuizzes={() => setActiveTabIdx(1)}
+              />
             </motion.div>
           )}
 
