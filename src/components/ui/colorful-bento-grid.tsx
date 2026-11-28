@@ -34,6 +34,7 @@ function InstagramIcon({ className }: { className?: string }) {
 }
 
 export interface ColorfulBentoGridProps {
+  userName?: string;
   totalScore: number;
   myRank: number | null;
   weeklyWinners: WeeklyRankedStudent[];
@@ -46,6 +47,7 @@ export interface ColorfulBentoGridProps {
 }
 
 export const ColorfulBentoGrid = ({
+  userName,
   totalScore,
   myRank,
   weeklyWinners,
@@ -89,17 +91,17 @@ export const ColorfulBentoGrid = ({
         <div className="flex flex-col my-3 sm:my-6 md:my-10 w-full items-start justify-start gap-3 sm:gap-4">
           <div className="flex flex-col md:flex-row gap-3 sm:gap-4 items-start md:items-end w-full justify-between">
             <h2 className="relative text-2xl sm:text-4xl md:text-5xl font-sans font-semibold max-w-xl text-left leading-[1.1] text-[#0A0A0A]">
-              Your skill progress, <br />
+              Welcome, <br />
               <span>
                 <Gift
                   className="inline-flex text-[#439775] fill-[#439775]/10 rotate-12 mr-1.5 w-7 h-7 sm:w-9 sm:h-9"
                   strokeWidth={2}
                 />
               </span>
-              live &amp; ranked.
+              {userName?.trim() || "Student"}
             </h2>
             <p className="max-w-sm font-semibold text-xs sm:text-base text-[#222222]/55">
-              Compete in live skill quizzes, review your answers instantly, and climb to the top of the student leaderboard.
+              Your skill progress, live &amp; ranked. Compete in live skill quizzes and climb to the top of the leaderboard.
             </p>
           </div>
 
@@ -155,15 +157,15 @@ export const ColorfulBentoGrid = ({
           </div>
         </div>
 
-        {/* Card 2 (Lavender): Weekly Winners */}
+        {/* Card 2 (Lavender): Current Week Leaderboard */}
         <div className="overflow-hidden md:hover:scale-105 hover:shadow-[-6px_6px_32px_8px_rgba(192,192,192,0.25)] hover:rotate-3 transition-all duration-200 ease-in-out relative bg-[#454ADE]/20 min-h-[240px] sm:h-[330px] rounded-xl flex flex-col items-center justify-between px-4 py-5 sm:py-6">
           <div className="flex flex-col items-center justify-center gap-1">
             <p className="rotate-6 mb-1 text-xs sm:text-sm font-medium text-[#0A0A0A]">
-              Weekly Winners
+              This Week&apos;s Standings
             </p>
-            <h3 className="rotate-6 text-lg sm:text-2xl font-semibold text-center px-5 sm:px-6 py-2 bg-[#0A0A0A]/90 text-white rounded-full inline-flex items-center gap-2">
-              <Crown className="w-4 h-4 text-[#FFF07C]" />
-              Weekly Winners
+            <h3 className="rotate-6 text-base sm:text-xl font-semibold text-center px-4 sm:px-5 py-2 bg-[#0A0A0A]/90 text-white rounded-full inline-flex items-center gap-2">
+              <Crown className="w-4 h-4 text-[#FFF07C] shrink-0" />
+              Current Week Leaderboard
             </h3>
           </div>
 
@@ -213,21 +215,30 @@ export const ColorfulBentoGrid = ({
           </div>
         </div>
 
-        {/* Card 4 (Soft Gray): Quizzes Played */}
-        <div
-          onClick={onOpenQuizzes}
-          className="overflow-hidden md:hover:scale-105 hover:shadow-[-6px_6px_32px_8px_rgba(192,192,192,0.25)] hover:rotate-4 transition-all duration-200 ease-in-out relative bg-[#f0f0f0] min-h-[190px] sm:h-[330px] rounded-xl flex flex-col items-center justify-center gap-3 px-5 py-5 sm:py-6 cursor-pointer"
-        >
-          <p className="-rotate-3 mb-1 text-xs sm:text-sm font-medium text-[#0A0A0A]">
-            {playedCount} of {totalQuizzes} Completed
+        {/* Card 4 (Swapped in - Soft Amber/Peach): What's Next / Coming Soon (Instagram) */}
+        <div className="overflow-hidden md:-rotate-2 md:hover:scale-105 hover:shadow-[-6px_6px_32px_8px_rgba(251,189,35,0.25)] hover:rotate-3 transition-all duration-200 ease-in-out relative bg-[#FBBD23]/20 min-h-[220px] sm:h-[330px] rounded-xl flex flex-col items-center justify-between px-5 py-5 sm:py-6 text-center gap-3">
+          <div className="flex flex-col items-center justify-center gap-1">
+            <p className="rotate-3 mb-1 text-xs font-semibold uppercase tracking-wider text-[#0A0A0A]">
+              What&apos;s Next
+            </p>
+            <h3 className="rotate-3 text-xl sm:text-2xl font-semibold text-center px-6 py-2 bg-[#0A0A0A]/90 text-white rounded-full inline-flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#FBBD23]" />
+              Coming Soon
+            </h3>
+          </div>
+
+          <p className="text-xs sm:text-sm font-medium text-[#222222]/80 leading-relaxed max-w-[230px]">
+            New quiz formats, more rewards, and exciting updates coming soon!
           </p>
-          <h3 className="-rotate-3 text-lg sm:text-2xl font-semibold text-center px-5 sm:px-6 py-2 bg-white/85 text-[#0A0A0A] rounded-full shadow-sm inline-flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-[#439775]" />
-            Quizzes Played
-          </h3>
-          <span className="text-xs font-medium text-[#222222]/60 mt-1 sm:mt-2 inline-flex items-center gap-1">
-            View history <ArrowUpRight className="w-3.5 h-3.5" />
-          </span>
+
+          <button
+            type="button"
+            onClick={handleInstagramFollow}
+            className="w-full py-2.5 px-4 rounded-full bg-white/85 hover:bg-white text-[#0A0A0A] text-xs font-semibold inline-flex items-center justify-center gap-2 shadow-sm cursor-pointer transition-all"
+          >
+            <InstagramIcon className="w-4 h-4 text-[#FF0F67]" />
+            Follow us on Instagram
+          </button>
         </div>
 
         {/* Card 5 (Blush Pink): Play Active Contests */}
@@ -255,7 +266,7 @@ export const ColorfulBentoGrid = ({
               Earn 10 Points
             </span>
             <p className="text-sm sm:text-base font-semibold text-[#0A0A0A] max-w-lg mt-1.5">
-              Share this dashboard screenshot on LinkedIn and earn 10 points!
+              Invite your friends by posting on LinkedIn and earn 10 points!
             </p>
           </div>
 
@@ -296,30 +307,21 @@ export const ColorfulBentoGrid = ({
           </p>
         </div>
 
-        {/* NEW CARD 2 (Soft Amber/Peach): What's Next */}
-        <div className="overflow-hidden md:-rotate-2 md:hover:scale-105 hover:shadow-[-6px_6px_32px_8px_rgba(251,189,35,0.25)] hover:rotate-3 transition-all duration-200 ease-in-out relative bg-[#FBBD23]/20 min-h-[220px] sm:h-[330px] rounded-xl flex flex-col items-center justify-between px-5 py-5 sm:py-6 text-center gap-3">
-          <div className="flex flex-col items-center justify-center gap-1">
-            <p className="rotate-3 mb-1 text-xs font-semibold uppercase tracking-wider text-[#0A0A0A]">
-              What&apos;s Next
-            </p>
-            <h3 className="rotate-3 text-xl sm:text-2xl font-semibold text-center px-6 py-2 bg-[#0A0A0A]/90 text-white rounded-full inline-flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#FBBD23]" />
-              Coming Soon
-            </h3>
-          </div>
-
-          <p className="text-xs sm:text-sm font-medium text-[#222222]/80 leading-relaxed max-w-[230px]">
-            New quiz formats, more rewards, and exciting updates coming soon!
+        {/* Card 7 (Swapped in - Soft Gray): Quizzes Played */}
+        <div
+          onClick={onOpenQuizzes}
+          className="overflow-hidden md:hover:scale-105 hover:shadow-[-6px_6px_32px_8px_rgba(192,192,192,0.25)] hover:rotate-4 transition-all duration-200 ease-in-out relative bg-[#f0f0f0] min-h-[190px] sm:h-[330px] rounded-xl flex flex-col items-center justify-center gap-3 px-5 py-5 sm:py-6 cursor-pointer"
+        >
+          <p className="-rotate-3 mb-1 text-xs sm:text-sm font-medium text-[#0A0A0A]">
+            {playedCount} of {totalQuizzes} Completed
           </p>
-
-          <button
-            type="button"
-            onClick={handleInstagramFollow}
-            className="w-full py-2.5 px-4 rounded-full bg-white/85 hover:bg-white text-[#0A0A0A] text-xs font-semibold inline-flex items-center justify-center gap-2 shadow-sm cursor-pointer transition-all"
-          >
-            <InstagramIcon className="w-4 h-4 text-[#FF0F67]" />
-            Follow us on Instagram
-          </button>
+          <h3 className="-rotate-3 text-lg sm:text-2xl font-semibold text-center px-5 sm:px-6 py-2 bg-white/85 text-[#0A0A0A] rounded-full shadow-sm inline-flex items-center gap-2">
+            <BookOpen className="w-4 h-4 text-[#439775]" />
+            Quizzes Played
+          </h3>
+          <span className="text-xs font-medium text-[#222222]/60 mt-1 sm:mt-2 inline-flex items-center gap-1">
+            View history <ArrowUpRight className="w-3.5 h-3.5" />
+          </span>
         </div>
       </div>
     </section>

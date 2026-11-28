@@ -610,6 +610,7 @@ export default function StudentDashboard() {
               className="flex flex-col gap-6"
             >
               <ColorfulBentoGrid
+                userName={profile?.name || profile?.email?.split('@')[0] || 'Student'}
                 totalScore={profile?.total_score ?? 0}
                 myRank={leaderboard?.myRank ?? null}
                 weeklyWinners={leaderboard?.weeklyWinners || []}
