@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { getLeaderboard, getMyRank, type RankedStudent } from '@/lib/leaderboard'
 import { 
-  Home, Zap, MessageSquare, Trophy, Star, TrendingUp, 
+  Home, Zap, MessageSquare, Trophy, TrendingUp, 
   CheckCircle2, XCircle, ArrowLeft, Loader2, Sparkles, LogOut, 
   Mail, Shield, ChevronRight, Lock, User, Clock,
   Crown, Target, BookOpen
