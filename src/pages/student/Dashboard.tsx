@@ -563,16 +563,16 @@ export default function StudentDashboard() {
       </AnimatePresence>
 
       {/* 2. Top Header Bar (Laptop & Mobile) */}
-      <header className="w-full border-b border-[#0A0A0A]/10 bg-white/90 backdrop-blur-xl sticky top-0 z-40 px-4 md:px-8 py-3.5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#0A0A0A] flex items-center justify-center font-bold text-white shadow-sm">
+      <header className="w-full border-b border-[#0A0A0A]/10 bg-white/90 backdrop-blur-xl sticky top-0 z-40 px-3.5 sm:px-4 md:px-8 py-3 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+          <div className="w-9 h-9 rounded-xl bg-[#0A0A0A] flex items-center justify-center font-bold text-white shadow-sm shrink-0">
             {(profile?.name || profile?.email || 'S')[0].toUpperCase()}
           </div>
-          <div>
+          <div className="min-w-0">
             <span className="text-[10px] md:text-[11px] font-bold tracking-widest uppercase text-[#439775] block">
               SkillFlow Student
             </span>
-            <h1 className="text-base md:text-lg font-bold font-['Space_Grotesk'] text-[#0A0A0A] leading-tight">
+            <h1 className="text-sm sm:text-base md:text-lg font-bold font-['Space_Grotesk'] text-[#0A0A0A] leading-tight truncate max-w-[200px] sm:max-w-none">
               {profile?.name ? `Hey, ${profile.name}` : 'Student Portal'}
             </h1>
           </div>
@@ -590,14 +590,14 @@ export default function StudentDashboard() {
         {/* Quick Logout Button */}
         <button
           onClick={handleLogout}
-          className="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FF0F67]/15 hover:bg-[#FF0F67]/25 text-[#FF0F67] text-xs font-semibold transition-all cursor-pointer"
+          className="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FF0F67]/15 hover:bg-[#FF0F67]/25 text-[#FF0F67] text-xs font-semibold transition-all cursor-pointer shrink-0"
         >
           <LogOut className="w-3.5 h-3.5" /> Logout
         </button>
       </header>
 
-      {/* 3. Main Content: Mobile centered (max-w-md), Desktop wide responsive */}
-      <main className="flex-1 w-full max-w-md md:max-w-5xl lg:max-w-6xl mx-auto px-4 md:px-8 py-6 pb-28 md:pb-12">
+      {/* 3. Main Content: Mobile responsive, Desktop wide */}
+      <main className="flex-1 w-full max-w-lg md:max-w-5xl lg:max-w-6xl mx-auto px-3 sm:px-4 md:px-8 py-4 sm:py-6 pb-24 md:pb-12">
         <AnimatePresence mode="wait">
           
           {/* TAB 1: HOME */}

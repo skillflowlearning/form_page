@@ -35,8 +35,8 @@ export function BottomNavBar({
       role="navigation"
       aria-label="Navigation Bar"
       className={cn(
-        "bg-white/95 backdrop-blur-xl border border-[#0A0A0A]/10 rounded-full flex items-center p-1.5 shadow-[0_8px_28px_rgba(10,10,10,0.08)] space-x-1 min-w-[280px] max-w-[95vw] h-[52px]",
-        stickyBottom && "fixed inset-x-0 bottom-4 mx-auto z-40 w-fit",
+        "bg-white/95 backdrop-blur-xl border border-[#0A0A0A]/10 rounded-full flex items-center p-1.5 shadow-[0_8px_28px_rgba(10,10,10,0.08)] space-x-0.5 sm:space-x-1 w-auto max-w-[95vw] h-[52px]",
+        stickyBottom && "fixed inset-x-0 bottom-3 sm:bottom-4 mx-auto z-40 w-fit",
         className,
       )}
     >
@@ -49,7 +49,7 @@ export function BottomNavBar({
             key={item.label}
             whileTap={{ scale: 0.95 }}
             className={cn(
-              "flex items-center gap-0 px-3.5 py-2 rounded-full transition-all duration-200 relative h-9 min-w-[42px] cursor-pointer",
+              "flex items-center gap-0 px-2.5 sm:px-3.5 py-2 rounded-full transition-all duration-200 relative h-9 min-w-[38px] sm:min-w-[42px] cursor-pointer",
               isActive
                 ? "bg-[#0A0A0A] text-white gap-2 shadow-sm"
                 : "bg-transparent text-[#222222]/60 hover:text-[#0A0A0A] hover:bg-[#f0f0f0]",

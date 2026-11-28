@@ -377,7 +377,7 @@ export default function AdminDashboard() {
       </header>
 
       {/* Main Responsive Body */}
-      <main className="flex-1 w-full max-w-md md:max-w-5xl lg:max-w-6xl mx-auto px-4 md:px-8 py-6 pb-28 md:pb-12">
+      <main className="flex-1 w-full max-w-lg md:max-w-5xl lg:max-w-6xl mx-auto px-3 sm:px-4 md:px-8 py-4 sm:py-6 pb-24 md:pb-12">
         <AnimatePresence mode="wait">
 
           {/* TAB 1: OVERVIEW */}
@@ -803,15 +803,15 @@ export default function AdminDashboard() {
                               <p className="text-xs text-[#222222]/60 truncate">{student.email}</p>
                             </div>
 
-                            <div className="flex items-center gap-2 shrink-0">
-                              <span className="px-3 py-1 rounded-full bg-[#0A0A0A]/90 text-white text-xs font-bold">
+                            <div className="flex flex-wrap items-center gap-2 shrink-0 mt-1 sm:mt-0">
+                              <span className="px-3 py-1.5 rounded-full bg-[#0A0A0A]/90 text-white text-xs font-bold">
                                 {student.total_score} pts
                               </span>
                               <button
                                 type="button"
                                 disabled={isBusy || linkedInClaimed}
                                 onClick={() => handleAwardBonus(student, 10, 'LinkedIn Share')}
-                                className="px-3.5 py-1.5 rounded-full bg-[#439775] hover:opacity-90 text-white text-xs font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
+                                className="px-4 py-2 rounded-full bg-[#439775] hover:opacity-90 text-white text-xs font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
                               >
                                 {isBusy ? 'Saving...' : linkedInClaimed ? 'LinkedIn +10 Given' : '+10 Points'}
                               </button>
