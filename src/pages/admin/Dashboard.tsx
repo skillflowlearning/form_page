@@ -3,6 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { getLeaderboard, type RankedStudent } from '@/lib/leaderboard'
+import {
+  awardBonusPoints,
+  getAllStudentsWithScores,
+  type StudentWithScores,
+} from '@/lib/quiz-backend'
 import { 
   Home, Zap, MessageSquare, Settings, Users, 
   UserPlus, LogOut, Loader2, CheckCircle2, AlertCircle,
@@ -47,9 +52,13 @@ export default function AdminDashboard() {
   const [broadcasting, setBroadcasting] = useState(false)
   const [recentMsgs, setRecentMsgs] = useState<any[]>([])
 
-  // User Management Quick Actions
+  // User Management Quick Actions & All Students Bonus Points
   const [targetEmail, setTargetEmail] = useState('')
   const [userActionLoading, setUserActionLoading] = useState(false)
+  const [allStudents, setAllStudents] = useState<StudentWithScores[]>([])
+  const [loadingStudents, setLoadingStudents] = useState(false)
+  const [awardingId, setAwardingId] = useState<string | null>(null)
+  const [customBonusMap, setCustomBonusMap] = useState<Record<string, { points: string; reason: string }>>({})
   const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   const navItems: (NavItem & { tabId: AdminTab })[] = [
@@ -112,11 +121,41 @@ export default function AdminDashboard() {
     setAllRanked(lbData.allRanked)
   }, [])
 
+  const loadAllStudents = useCallback(async () => {
+    setLoadingStudents(true)
+    try {
+      const list = await getAllStudentsWithScores()
+      setAllStudents(list)
+    } catch (err: any) {
+      showToast('error', err?.message || 'Failed to load students list.')
+    } finally {
+      setLoadingStudents(false)
+    }
+  }, [])
+
+  const handleAwardBonus = async (student: StudentWithScores, pts: number, reasonText: string) => {
+    if (!pts || pts <= 0) return showToast('error', 'Points must be greater than 0.')
+    const cleanReason = reasonText.trim() || 'Bonus Points'
+    setAwardingId(student.id)
+    try {
+      const res = await awardBonusPoints(student.id, pts, cleanReason)
+      showToast('success', `Awarded +${pts} pts to ${student.name} (${cleanReason}). New score: ${res.new_total_score}`)
+      setCustomBonusMap(prev => ({ ...prev, [student.id]: { points: '', reason: '' } }))
+      await Promise.all([loadAllStudents(), refreshAdminLeaderboard()])
+    } catch (err: any) {
+      showToast('error', err?.message || 'Failed to award bonus points.')
+    } finally {
+      setAwardingId(null)
+    }
+  }
+
   useEffect(() => {
     if (currentTab === 'overview' && !loading) {
       refreshAdminLeaderboard()
+    } else if (currentTab === 'settings' && !loading) {
+      loadAllStudents()
     }
-  }, [currentTab, loading, refreshAdminLeaderboard])
+  }, [currentTab, loading, refreshAdminLeaderboard, loadAllStudents])
 
   useEffect(() => {
     const channel = supabase
@@ -690,11 +729,11 @@ export default function AdminDashboard() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="flex flex-col gap-5 max-w-xl mx-auto"
+              className="flex flex-col gap-5 max-w-3xl mx-auto pb-8"
             >
               <div>
                 <h2 className="text-2xl sm:text-3xl font-semibold text-[#0A0A0A]">Admin Session</h2>
-                <p className="text-xs text-[#222222]/60 mt-1">Administrator details</p>
+                <p className="text-xs text-[#222222]/60 mt-1">Administrator details &amp; student bonus points</p>
               </div>
 
               <div className="rounded-xl p-6 bg-[#f0f0f0] hover:scale-[1.01] hover:rotate-1 hover:shadow-[-6px_6px_32px_8px_rgba(192,192,192,0.25)] transition-all duration-200 ease-in-out flex flex-col gap-3">
@@ -703,6 +742,129 @@ export default function AdminDashboard() {
                 <span className="-rotate-2 w-fit text-[10px] font-bold uppercase tracking-wider text-white bg-[#0A0A0A]/90 px-3 py-1 rounded-full mt-1">
                   System Admin
                 </span>
+              </div>
+
+              {/* All Students Bonus Points Section */}
+              <div className="rounded-xl p-6 bg-[#439775]/15 flex flex-col gap-4">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <span className="-rotate-1 inline-block px-3.5 py-1 rounded-full bg-[#0A0A0A]/90 text-white text-xs font-semibold mb-1.5">
+                      All Students
+                    </span>
+                    <p className="text-xs text-[#222222]/70 font-medium">
+                      Award bonus points manually (e.g. LinkedIn Share verification)
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={loadAllStudents}
+                    disabled={loadingStudents}
+                    className="px-3.5 py-1.5 rounded-full bg-white/85 hover:bg-white text-[#0A0A0A] text-xs font-semibold cursor-pointer transition-colors"
+                  >
+                    {loadingStudents ? 'Refreshing...' : 'Refresh'}
+                  </button>
+                </div>
+
+                {loadingStudents && allStudents.length === 0 ? (
+                  <div className="py-8 flex items-center justify-center gap-2 text-xs text-[#222222]/60">
+                    <Loader2 className="w-4 h-4 animate-spin" /> Loading students...
+                  </div>
+                ) : allStudents.length === 0 ? (
+                  <p className="text-xs text-[#222222]/60 text-center py-6">No students found.</p>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    {allStudents.map(student => {
+                      const custom = customBonusMap[student.id] || { points: '', reason: '' }
+                      const linkedInClaimed = student.claimed_reasons.some(
+                        r => r.toLowerCase() === 'linkedin share'
+                      )
+                      const isBusy = awardingId === student.id
+
+                      return (
+                        <div
+                          key={student.id}
+                          className="rounded-xl p-4 bg-white/85 flex flex-col gap-3 transition-all duration-200 hover:shadow-sm"
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-sm font-bold text-[#0A0A0A] truncate">{student.name}</span>
+                                {student.bonus_total > 0 && (
+                                  <span className="px-2 py-0.5 rounded-full bg-[#454ADE]/15 text-[#454ADE] text-[10px] font-bold">
+                                    +{student.bonus_total} Bonus
+                                  </span>
+                                )}
+                                {linkedInClaimed && (
+                                  <span className="px-2 py-0.5 rounded-full bg-[#3ABFF8]/20 text-[#0A0A0A] text-[10px] font-bold">
+                                    LinkedIn Claimed
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-[#222222]/60 truncate">{student.email}</p>
+                            </div>
+
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="px-3 py-1 rounded-full bg-[#0A0A0A]/90 text-white text-xs font-bold">
+                                {student.total_score} pts
+                              </span>
+                              <button
+                                type="button"
+                                disabled={isBusy || linkedInClaimed}
+                                onClick={() => handleAwardBonus(student, 10, 'LinkedIn Share')}
+                                className="px-3.5 py-1.5 rounded-full bg-[#439775] hover:opacity-90 text-white text-xs font-semibold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
+                              >
+                                {isBusy ? 'Saving...' : linkedInClaimed ? 'LinkedIn +10 Given' : '+10 Points'}
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Custom Points & Reason Row */}
+                          <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-[#0A0A0A]/10">
+                            <input
+                              type="number"
+                              min={1}
+                              placeholder="Points"
+                              value={custom.points}
+                              onChange={e =>
+                                setCustomBonusMap(prev => ({
+                                  ...prev,
+                                  [student.id]: { ...custom, points: e.target.value },
+                                }))
+                              }
+                              className="w-full sm:w-24 bg-[#f0f0f0] rounded-xl px-3 py-2 text-xs text-[#0A0A0A] placeholder-[#222222]/40 outline-none focus:ring-2 focus:ring-[#439775]"
+                            />
+                            <input
+                              type="text"
+                              placeholder="Reason (e.g. LinkedIn Share)"
+                              value={custom.reason}
+                              onChange={e =>
+                                setCustomBonusMap(prev => ({
+                                  ...prev,
+                                  [student.id]: { ...custom, reason: e.target.value },
+                                }))
+                              }
+                              className="flex-1 bg-[#f0f0f0] rounded-xl px-3 py-2 text-xs text-[#0A0A0A] placeholder-[#222222]/40 outline-none focus:ring-2 focus:ring-[#439775]"
+                            />
+                            <button
+                              type="button"
+                              disabled={isBusy || !custom.points || Number(custom.points) <= 0}
+                              onClick={() =>
+                                handleAwardBonus(
+                                  student,
+                                  parseInt(custom.points, 10),
+                                  custom.reason || 'Manual Bonus'
+                                )
+                              }
+                              className="px-4 py-2 rounded-full bg-[#0A0A0A]/90 hover:bg-[#0A0A0A] text-white text-xs font-semibold cursor-pointer disabled:opacity-40 transition-colors"
+                            >
+                              Award
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
 
               <button

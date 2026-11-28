@@ -146,3 +146,45 @@ export async function getMyWeeklyRank(studentId: string): Promise<WeeklyRankedSt
     rank: Number(row.rank ?? 1),
   }
 }
+
+export interface StudentWithScores {
+  id: string
+  name: string
+  email: string
+  total_score: number
+  bonus_total: number
+  claimed_reasons: string[]
+}
+
+/**
+ * Admin-only: Award manual bonus points to a student (trigger updates profiles.total_score).
+ */
+export async function awardBonusPoints(
+  studentId: string,
+  points: number,
+  reason: string
+): Promise<{ success: boolean; student_id: string; points_awarded: number; new_total_score: number }> {
+  const { data, error } = await supabase.rpc('award_bonus_points', {
+    p_student_id: studentId,
+    p_points: points,
+    p_reason: reason,
+  })
+  if (error) throw error
+  return data as { success: boolean; student_id: string; points_awarded: number; new_total_score: number }
+}
+
+/**
+ * Admin-only: Get all students with their total_score, total bonus_points, and claimed reasons.
+ */
+export async function getAllStudentsWithScores(): Promise<StudentWithScores[]> {
+  const { data, error } = await supabase.rpc('get_all_students_with_scores')
+  if (error) throw error
+  return (data || []).map((row: any) => ({
+    id: row.id,
+    name: row.name || 'Student',
+    email: row.email || '',
+    total_score: Number(row.total_score ?? 0),
+    bonus_total: Number(row.bonus_total ?? 0),
+    claimed_reasons: Array.isArray(row.claimed_reasons) ? row.claimed_reasons : [],
+  }))
+}
