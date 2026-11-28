@@ -1,6 +1,21 @@
+import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Gift, Trophy, Crown, Target, BookOpen, Zap, ArrowUpRight } from "lucide-react";
+import {
+  Gift,
+  Trophy,
+  Crown,
+  Target,
+  BookOpen,
+  Zap,
+  ArrowUpRight,
+  Linkedin,
+  Instagram,
+  Sparkles,
+  MessageCircle,
+  ExternalLink,
+} from "lucide-react";
 import type { WeeklyRankedStudent } from "@/lib/quiz-backend";
+import { SOCIAL_LINKS } from "@/lib/constants";
 
 export interface ColorfulBentoGridProps {
   totalScore: number;
@@ -25,6 +40,26 @@ export const ColorfulBentoGrid = ({
   onOpenQuizzes,
   className,
 }: ColorfulBentoGridProps) => {
+  const [hasSharedLinkedIn, setHasSharedLinkedIn] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("sf_linkedin_shared") === "true";
+  });
+
+  const handleLinkedInShare = () => {
+    window.open(SOCIAL_LINKS.linkedinShareUrl, "_blank", "noopener,noreferrer");
+    setHasSharedLinkedIn(true);
+    localStorage.setItem("sf_linkedin_shared", "true");
+  };
+
+  const handleWhatsAppProof = () => {
+    if (!hasSharedLinkedIn) return;
+    window.open(SOCIAL_LINKS.whatsappProofUrl, "_blank", "noopener,noreferrer");
+  };
+
+  const handleInstagramFollow = () => {
+    window.open(SOCIAL_LINKS.instagramUrl, "_blank", "noopener,noreferrer");
+  };
+
   return (
     <section
       id="quiz-bento-hub"
@@ -195,6 +230,81 @@ export const ColorfulBentoGrid = ({
           <span className="text-xs font-medium text-[#222222]/60 mt-2 inline-flex items-center gap-1">
             Start a challenge <ArrowUpRight className="w-3.5 h-3.5" />
           </span>
+        </div>
+
+        {/* NEW CARD 1 (2-col span, Soft Sky/Cyan): Share & Earn 10 Points */}
+        <div className="md:col-span-2 overflow-hidden rotate-1 md:hover:scale-[1.01] hover:shadow-[-6px_6px_32px_8px_rgba(58,191,248,0.25)] hover:-rotate-1 transition-all duration-200 ease-in-out min-h-[300px] sm:h-[330px] relative bg-[#3ABFF8]/20 rounded-xl flex flex-col justify-between px-6 py-6">
+          <div className="flex flex-col items-start gap-2">
+            <span className="-rotate-2 text-sm sm:text-base font-semibold px-5 py-1.5 bg-[#0A0A0A]/90 text-white rounded-full inline-flex items-center gap-2">
+              <Linkedin className="w-4 h-4 text-[#3ABFF8]" />
+              Earn 10 Points
+            </span>
+            <p className="text-sm sm:text-base font-semibold text-[#0A0A0A] max-w-lg mt-2">
+              Share this dashboard screenshot on LinkedIn and earn 10 points!
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 my-3">
+            <button
+              type="button"
+              onClick={handleLinkedInShare}
+              className="px-5 py-3 rounded-full bg-[#0A0A0A]/90 hover:bg-[#0A0A0A] text-white text-xs sm:text-sm font-semibold inline-flex items-center justify-center gap-2 cursor-pointer transition-all"
+            >
+              <Linkedin className="w-4 h-4 text-[#3ABFF8]" />
+              Share on LinkedIn
+              <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleWhatsAppProof}
+              disabled={!hasSharedLinkedIn}
+              className={cn(
+                "px-5 py-3 rounded-full text-xs sm:text-sm font-semibold inline-flex items-center justify-center gap-2 transition-all",
+                hasSharedLinkedIn
+                  ? "bg-[#439775] hover:opacity-90 text-white cursor-pointer shadow-sm"
+                  : "bg-white/60 text-[#222222]/40 cursor-not-allowed"
+              )}
+              title={
+                hasSharedLinkedIn
+                  ? "Submit your LinkedIn post screenshot on WhatsApp"
+                  : "Share on LinkedIn first to unlock this button"
+              }
+            >
+              <MessageCircle className="w-4 h-4" />
+              Submit Proof on WhatsApp
+            </button>
+          </div>
+
+          <p className="text-[11px] font-medium text-[#222222]/65">
+            Points will be added manually by admin after verification
+          </p>
+        </div>
+
+        {/* NEW CARD 2 (Soft Amber/Peach): What's Next */}
+        <div className="overflow-hidden -rotate-2 md:hover:scale-105 hover:shadow-[-6px_6px_32px_8px_rgba(251,189,35,0.25)] hover:rotate-3 transition-all duration-200 ease-in-out relative bg-[#FBBD23]/20 min-h-[300px] sm:h-[330px] rounded-xl flex flex-col items-center justify-between px-5 py-6 text-center">
+          <div className="flex flex-col items-center justify-center gap-1">
+            <p className="rotate-3 mb-1 text-xs font-semibold uppercase tracking-wider text-[#0A0A0A]">
+              What&apos;s Next
+            </p>
+            <h3 className="rotate-3 text-xl sm:text-2xl font-semibold text-center px-6 py-2 bg-[#0A0A0A]/90 text-white rounded-full inline-flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#FBBD23]" />
+              Coming Soon
+            </h3>
+          </div>
+
+          <p className="text-xs sm:text-sm font-medium text-[#222222]/80 leading-relaxed max-w-[230px]">
+            New quiz formats, more rewards, and exciting updates coming soon!
+          </p>
+
+          <button
+            type="button"
+            onClick={handleInstagramFollow}
+            className="w-full py-2.5 px-4 rounded-full bg-white/85 hover:bg-white text-[#0A0A0A] text-xs font-semibold inline-flex items-center justify-center gap-2 shadow-sm cursor-pointer transition-all"
+          >
+            <Instagram className="w-4 h-4 text-[#FF0F67]" />
+            Follow us on Instagram
+          </button>
         </div>
       </div>
     </section>
