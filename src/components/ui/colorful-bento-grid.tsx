@@ -161,11 +161,11 @@ export const ColorfulBentoGrid = ({
         <div className="overflow-hidden md:hover:scale-105 hover:shadow-[-6px_6px_32px_8px_rgba(192,192,192,0.25)] hover:rotate-3 transition-all duration-200 ease-in-out relative bg-[#454ADE]/20 min-h-[240px] sm:h-[330px] rounded-xl flex flex-col items-center justify-between px-4 py-5 sm:py-6">
           <div className="flex flex-col items-center justify-center gap-1">
             <p className="rotate-6 mb-1 text-xs sm:text-sm font-medium text-[#0A0A0A]">
-              This Week&apos;s Standings
+              Current Week
             </p>
             <h3 className="rotate-6 text-base sm:text-xl font-semibold text-center px-4 sm:px-5 py-2 bg-[#0A0A0A]/90 text-white rounded-full inline-flex items-center gap-2">
               <Crown className="w-4 h-4 text-[#FFF07C] shrink-0" />
-              Current Week Leaderboard
+              Leaderboard
             </h3>
           </div>
 
