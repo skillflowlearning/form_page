@@ -386,11 +386,7 @@ export default function StudentDashboard() {
   }
 
   return (
-    <div
-      className={`min-h-screen flex flex-col font-sans select-none overflow-x-hidden transition-colors duration-200 ${
-        currentTab === 'home' ? 'bg-white text-[#0A0A0A]' : 'bg-[#03060f] text-slate-100'
-      }`}
-    >
+    <div className="min-h-screen bg-white text-[#0A0A0A] flex flex-col font-sans select-none overflow-x-hidden">
 
       {/* 1. Welcome AlertCard Modal */}
       <AnimatePresence>
@@ -476,44 +472,49 @@ export default function StudentDashboard() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="flex flex-col gap-5 max-w-2xl mx-auto"
+              className="flex flex-col gap-5 max-w-3xl mx-auto"
             >
               {quizScreen === 'list' && (
                 <>
                   <div>
-                    <h2 className="text-xl font-bold font-['Space_Grotesk'] text-white">Active Contests & Quizzes</h2>
-                    <p className="text-xs md:text-sm text-slate-400 mt-1">Attempt once to record your score on the leaderboard</p>
+                    <h2 className="text-2xl sm:text-3xl font-semibold text-[#0A0A0A]">Active Contests &amp; Quizzes</h2>
+                    <p className="text-xs md:text-sm text-[#222222]/60 mt-1">Attempt once to record your score on the leaderboard</p>
                   </div>
 
-                  <div className="flex flex-col gap-3">
-                    {quizzes.map((q) => (
-                      <div
-                        key={q.id}
-                        onClick={() => !q.attempted && handleStartQuiz(q)}
-                        className={`rounded-2xl p-4 md:p-5 border flex items-center gap-4 transition-all ${
-                          q.attempted
-                            ? 'bg-emerald-950/20 border-emerald-500/30 opacity-75 cursor-default'
-                            : 'bg-white/[0.03] border-white/[0.07] hover:border-indigo-500/40 cursor-pointer active:scale-[0.99]'
-                        }`}
-                      >
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
-                          q.attempted ? 'bg-emerald-500/10 text-emerald-400' : 'bg-indigo-500/10 text-indigo-400'
-                        }`}>
-                          {q.attempted ? <CheckCircle2 className="w-6 h-6" /> : <Zap className="w-6 h-6" />}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {quizzes.map((q, idx) => {
+                      const pastelBgs = ['bg-[#439775]/20', 'bg-[#454ADE]/20', 'bg-[#FFF07C]/25', 'bg-[#FF0F67]/20']
+                      const hoverTilts = ['hover:rotate-1', 'hover:-rotate-1', 'hover:rotate-2', 'hover:-rotate-2']
+                      return (
+                        <div
+                          key={q.id}
+                          onClick={() => !q.attempted && handleStartQuiz(q)}
+                          className={`rounded-xl p-5 flex flex-col justify-between gap-4 transition-all duration-200 ease-in-out ${
+                            q.attempted
+                              ? 'bg-[#f0f0f0] opacity-80 cursor-default'
+                              : `${pastelBgs[idx % pastelBgs.length]} ${hoverTilts[idx % hoverTilts.length]} hover:scale-[1.03] hover:shadow-[-6px_6px_32px_8px_rgba(192,192,192,0.25)] cursor-pointer`
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="-rotate-2 px-3.5 py-1 rounded-full bg-[#0A0A0A]/90 text-white text-xs font-semibold inline-flex items-center gap-1.5">
+                              {q.attempted ? <CheckCircle2 className="w-3.5 h-3.5 text-[#36D399]" /> : <Zap className="w-3.5 h-3.5 text-[#FFF07C]" />}
+                              {q.attempted ? `Score: ${q.score} pts` : `${q.duration_minutes || 8} min`}
+                            </span>
+                            {!q.attempted ? <ChevronRight className="w-5 h-5 text-[#0A0A0A]" /> : <Lock className="w-4 h-4 text-[#439775]" />}
+                          </div>
+                          <div>
+                            <h4 className="text-lg font-bold text-[#0A0A0A]">{q.title}</h4>
+                            <p className="text-xs mt-1 text-[#222222]/70 font-medium">
+                              {q.attempted ? 'Already attempted' : 'Tap to start quiz'}
+                            </p>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <h4 className="text-base font-bold text-white">{q.title}</h4>
-                          <p className="text-xs mt-1 text-slate-400">
-                            {q.attempted
-                              ? `Already attempted • Score: ${q.score} pts`
-                              : `Ready to attempt • ${q.duration_minutes || 8} min`}
-                          </p>
-                        </div>
-                        {!q.attempted ? <ChevronRight className="w-5 h-5 text-slate-400" /> : <Lock className="w-4 h-4 text-emerald-400" />}
-                      </div>
-                    ))}
+                      )
+                    })}
                     {quizzes.length === 0 && (
-                      <div className="text-center py-10 text-slate-500 text-sm">No quizzes active currently. Check back soon!</div>
+                      <div className="sm:col-span-2 text-center py-12 rounded-xl bg-[#f0f0f0] text-[#222222]/60 text-sm font-medium">
+                        No quizzes active currently. Check back soon!
+                      </div>
                     )}
                   </div>
                 </>
@@ -526,25 +527,25 @@ export default function StudentDashboard() {
                     <div className="flex items-center gap-3 min-w-0">
                       <button
                         onClick={() => setQuizScreen('list')}
-                        className="p-2 rounded-lg bg-white/5 border border-white/10 text-slate-300 cursor-pointer shrink-0"
+                        className="p-2.5 rounded-xl bg-[#f0f0f0] hover:bg-[#e5e5e5] text-[#0A0A0A] cursor-pointer shrink-0 transition-colors"
                         title="Back to quiz list"
                       >
                         <ArrowLeft className="w-4 h-4" />
                       </button>
                       <div className="min-w-0">
-                        <span className="text-[11px] uppercase font-bold text-indigo-400 tracking-wider">
+                        <span className="text-[11px] uppercase font-bold text-[#454ADE] tracking-wider">
                           Question {currentQ + 1} of {questions.length}
                         </span>
-                        <p className="text-sm text-slate-200 font-semibold truncate">{activeQuiz?.title}</p>
+                        <p className="text-sm text-[#0A0A0A] font-semibold truncate">{activeQuiz?.title}</p>
                       </div>
                     </div>
 
                     {/* Countdown Timer */}
                     <div
-                      className={`px-3.5 py-2 rounded-xl border flex items-center gap-2 font-mono text-sm font-bold shrink-0 transition-colors ${
+                      className={`px-4 py-2 rounded-full flex items-center gap-2 font-mono text-sm font-bold shrink-0 transition-colors ${
                         timeLeft <= 60
-                          ? 'bg-red-500/15 border-red-500/40 text-red-400 animate-pulse'
-                          : 'bg-indigo-500/10 border-indigo-500/30 text-indigo-300'
+                          ? 'bg-[#FF0F67]/20 text-[#FF0F67] animate-pulse'
+                          : 'bg-[#0A0A0A]/90 text-white'
                       }`}
                     >
                       <Clock className="w-4 h-4" />
@@ -562,12 +563,12 @@ export default function StudentDashboard() {
                           key={qItem.id}
                           type="button"
                           onClick={() => setCurrentQ(idx)}
-                          className={`w-8 h-8 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
+                          className={`w-8 h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                             isCurrent
-                              ? 'bg-indigo-500 border-indigo-400 text-white shadow-[0_0_10px_rgba(99,102,241,0.4)]'
+                              ? 'bg-[#0A0A0A] text-white scale-105'
                               : isAnswered
-                              ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
-                              : 'bg-white/[0.03] border-white/10 text-slate-400 hover:bg-white/[0.08]'
+                              ? 'bg-[#439775]/25 text-[#0A0A0A]'
+                              : 'bg-[#f0f0f0] text-[#222222]/70 hover:bg-[#e4e4e4]'
                           }`}
                         >
                           {idx + 1}
@@ -577,8 +578,8 @@ export default function StudentDashboard() {
                   </div>
 
                   {/* Question Box */}
-                  <div className="rounded-2xl p-6 bg-white/[0.03] border border-white/[0.08]">
-                    <h3 className="text-base md:text-lg font-medium text-white leading-relaxed">
+                  <div className="rounded-xl p-6 bg-[#454ADE]/15">
+                    <h3 className="text-base md:text-lg font-semibold text-[#0A0A0A] leading-relaxed">
                       {questions[currentQ].question_text}
                     </h3>
                   </div>
@@ -591,19 +592,19 @@ export default function StudentDashboard() {
                         <button
                           key={i}
                           onClick={() => setSelectedAnswers(prev => ({ ...prev, [questions[currentQ].id]: i }))}
-                          className={`w-full p-4 md:p-5 rounded-2xl text-left text-sm md:text-base flex items-center gap-3.5 border transition-all cursor-pointer ${
+                          className={`w-full p-4 md:p-5 rounded-xl text-left text-sm md:text-base flex items-center gap-3.5 transition-all duration-200 ease-in-out cursor-pointer ${
                             selected
-                              ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.2)]'
-                              : 'bg-white/[0.02] border-white/[0.07] text-slate-300 hover:bg-white/[0.05]'
+                              ? 'bg-[#439775]/25 text-[#0A0A0A] ring-2 ring-[#439775] scale-[1.01]'
+                              : 'bg-[#f0f0f0] text-[#0A0A0A] hover:bg-[#e6e6e6]'
                           }`}
                         >
-                          <span className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
-                            selected ? 'bg-indigo-500 text-white' : 'bg-white/5 text-slate-400'
+                          <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
+                            selected ? 'bg-[#0A0A0A] text-white' : 'bg-white text-[#0A0A0A]'
                           }`}>
                             {String.fromCharCode(65 + i)}
                           </span>
-                          <span className="flex-1">{opt}</span>
-                          {selected && <CheckCircle2 className="w-5 h-5 text-indigo-400" />}
+                          <span className="flex-1 font-medium">{opt}</span>
+                          {selected && <CheckCircle2 className="w-5 h-5 text-[#439775]" />}
                         </button>
                       )
                     })}
@@ -615,25 +616,25 @@ export default function StudentDashboard() {
                       type="button"
                       onClick={() => setCurrentQ(c => Math.max(0, c - 1))}
                       disabled={currentQ === 0}
-                      className="px-5 py-3.5 rounded-xl font-bold text-sm bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 disabled:opacity-30 cursor-pointer transition-colors"
+                      className="px-5 py-3.5 rounded-full font-semibold text-sm bg-[#f0f0f0] hover:bg-[#e5e5e5] text-[#0A0A0A] disabled:opacity-40 cursor-pointer transition-colors"
                     >
-                      ← Previous
+                      Previous
                     </button>
 
                     {currentQ < questions.length - 1 ? (
                       <button
                         type="button"
                         onClick={() => setCurrentQ(c => c + 1)}
-                        className="flex-1 py-3.5 rounded-xl font-bold text-sm bg-white/10 hover:bg-white/15 text-white cursor-pointer transition-colors"
+                        className="flex-1 py-3.5 rounded-full font-semibold text-sm bg-[#0A0A0A]/90 hover:bg-[#0A0A0A] text-white cursor-pointer transition-colors"
                       >
-                        Next Question →
+                        Next Question
                       </button>
                     ) : (
                       <button
                         type="button"
                         onClick={() => handleSubmitAttempt(false)}
                         disabled={submittingQuiz}
-                        className="flex-1 py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-indigo-600 to-purple-600 text-white disabled:opacity-40 cursor-pointer shadow-lg shadow-indigo-600/25"
+                        className="flex-1 py-3.5 rounded-full font-semibold text-sm bg-[#439775] hover:opacity-90 text-white disabled:opacity-40 cursor-pointer transition-opacity"
                       >
                         {submittingQuiz
                           ? 'Submitting...'
@@ -645,40 +646,40 @@ export default function StudentDashboard() {
               )}
 
               {quizScreen === 'result' && quizResult && (
-                <div className="py-6 flex flex-col gap-6">
+                <div className="py-4 flex flex-col gap-6">
                   {/* Top Summary Card */}
-                  <div className="rounded-3xl p-6 md:p-8 bg-white/[0.03] border border-white/[0.08] text-center flex flex-col items-center gap-4">
-                    <div className="w-24 h-24 rounded-full bg-emerald-500/10 border-2 border-emerald-500/30 flex items-center justify-center text-3xl font-extrabold text-emerald-400 font-['Space_Grotesk'] shadow-[0_0_40px_rgba(34,197,94,0.15)]">
+                  <div className="rounded-xl p-6 md:p-8 bg-[#439775]/20 text-center flex flex-col items-center gap-4">
+                    <div className="w-24 h-24 rounded-full bg-white flex items-center justify-center text-3xl font-extrabold text-[#0A0A0A] shadow-sm">
                       {quizResult.total > 0 ? Math.round((quizResult.score / quizResult.total) * 100) : 0}%
                     </div>
                     <div>
-                      <h3 className="text-2xl md:text-3xl font-bold font-['Space_Grotesk'] text-white">
+                      <h3 className="text-2xl md:text-3xl font-bold text-[#0A0A0A]">
                         {quizResult.autoSubmitted ? "Time's Up! Quiz Auto-Submitted" : 'Quiz Completed!'}
                       </h3>
-                      <p className="text-base md:text-lg text-slate-200 mt-1 font-semibold">
-                        <span className="text-emerald-400">{quizResult.score} / {quizResult.total}</span> correct
+                      <p className="text-base md:text-lg text-[#222222]/80 mt-1 font-semibold">
+                        <span className="text-[#439775]">{quizResult.score} / {quizResult.total}</span> correct
                       </p>
                     </div>
 
                     {/* Correct / Wrong / Skipped Badges */}
                     <div className="grid grid-cols-3 gap-2.5 w-full max-w-sm mt-1">
-                      <div className="rounded-xl p-3 bg-emerald-500/10 border border-emerald-500/20">
-                        <span className="text-[11px] uppercase font-bold text-emerald-400 block">Correct</span>
-                        <span className="text-lg font-extrabold text-white">{quizResult.score}</span>
+                      <div className="rounded-xl p-3 bg-white/80">
+                        <span className="text-[11px] uppercase font-bold text-[#439775] block">Correct</span>
+                        <span className="text-lg font-extrabold text-[#0A0A0A]">{quizResult.score}</span>
                       </div>
-                      <div className="rounded-xl p-3 bg-red-500/10 border border-red-500/20">
-                        <span className="text-[11px] uppercase font-bold text-red-400 block">Wrong</span>
-                        <span className="text-lg font-extrabold text-white">{quizResult.wrong}</span>
+                      <div className="rounded-xl p-3 bg-white/80">
+                        <span className="text-[11px] uppercase font-bold text-[#FF0F67] block">Wrong</span>
+                        <span className="text-lg font-extrabold text-[#0A0A0A]">{quizResult.wrong}</span>
                       </div>
-                      <div className="rounded-xl p-3 bg-slate-500/10 border border-slate-500/20">
-                        <span className="text-[11px] uppercase font-bold text-slate-400 block">Skipped</span>
-                        <span className="text-lg font-extrabold text-white">{quizResult.unanswered}</span>
+                      <div className="rounded-xl p-3 bg-white/80">
+                        <span className="text-[11px] uppercase font-bold text-[#222222]/60 block">Skipped</span>
+                        <span className="text-lg font-extrabold text-[#0A0A0A]">{quizResult.unanswered}</span>
                       </div>
                     </div>
 
                     <button
                       onClick={() => setQuizScreen('list')}
-                      className="w-full max-w-xs py-3.5 rounded-xl font-bold text-sm bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer mt-2"
+                      className="w-full max-w-xs py-3.5 rounded-full font-semibold text-sm bg-[#0A0A0A]/90 hover:bg-[#0A0A0A] text-white cursor-pointer mt-2"
                     >
                       Back to Contests
                     </button>
@@ -686,30 +687,28 @@ export default function StudentDashboard() {
 
                   {/* Question-by-Question Review */}
                   <div className="flex flex-col gap-3">
-                    <h4 className="text-sm font-bold uppercase tracking-wider text-slate-400">
+                    <h4 className="text-sm font-bold uppercase tracking-wider text-[#222222]/60">
                       Detailed Answer Review ({quizResult.review.length} Questions)
                     </h4>
 
                     {quizResult.review.map((item, idx) => (
                       <div
                         key={item.id}
-                        className={`rounded-2xl p-5 border flex flex-col gap-3 ${
-                          item.is_correct
-                            ? 'bg-emerald-950/15 border-emerald-500/25'
-                            : 'bg-red-950/15 border-red-500/25'
+                        className={`rounded-xl p-5 flex flex-col gap-3 ${
+                          item.is_correct ? 'bg-[#439775]/15' : 'bg-[#FF0F67]/15'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-3">
-                          <p className="text-sm md:text-base font-medium text-white leading-snug">
-                            <span className="text-slate-400 font-bold mr-2">Q{idx + 1}.</span>
+                          <p className="text-sm md:text-base font-semibold text-[#0A0A0A] leading-snug">
+                            <span className="text-[#222222]/60 font-bold mr-2">Q{idx + 1}.</span>
                             {item.question_text}
                           </p>
                           {item.is_correct ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 text-[11px] font-bold shrink-0">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white text-[#439775] text-[11px] font-bold shrink-0">
                               <CheckCircle2 className="w-3.5 h-3.5" /> Correct
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-500/15 text-red-400 text-[11px] font-bold shrink-0">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white text-[#FF0F67] text-[11px] font-bold shrink-0">
                               <XCircle className="w-3.5 h-3.5" /> {item.selected_option === null ? 'Skipped' : 'Wrong'}
                             </span>
                           )}
@@ -720,21 +719,21 @@ export default function StudentDashboard() {
                             const isSelected = item.selected_option === optIdx
                             const isCorrectOpt = item.correct_option === optIdx
 
-                            let styleClass = 'bg-white/[0.02] border-white/[0.06] text-slate-400'
+                            let styleClass = 'bg-white/70 text-[#222222]/80'
                             let tag: string | null = null
 
                             if (isCorrectOpt) {
-                              styleClass = 'bg-emerald-500/15 border-emerald-500/50 text-emerald-200 font-medium'
-                              tag = isSelected ? 'Your Answer ✓' : 'Correct Answer ✓'
+                              styleClass = 'bg-[#439775]/25 ring-1 ring-[#439775] text-[#0A0A0A] font-semibold'
+                              tag = isSelected ? 'Your Answer (Correct)' : 'Correct Answer'
                             } else if (isSelected && !item.is_correct) {
-                              styleClass = 'bg-red-500/15 border-red-500/50 text-red-200 font-medium'
-                              tag = 'Your Answer ✗'
+                              styleClass = 'bg-[#FF0F67]/20 ring-1 ring-[#FF0F67] text-[#0A0A0A] font-semibold'
+                              tag = 'Your Answer (Wrong)'
                             }
 
                             return (
                               <div
                                 key={optIdx}
-                                className={`px-3.5 py-2.5 rounded-xl border text-xs md:text-sm flex items-center justify-between gap-2 ${styleClass}`}
+                                className={`px-3.5 py-2.5 rounded-xl text-xs md:text-sm flex items-center justify-between gap-2 ${styleClass}`}
                               >
                                 <div className="flex items-center gap-2.5 min-w-0">
                                   <span className="font-bold shrink-0">{String.fromCharCode(65 + optIdx)}.</span>
@@ -742,7 +741,7 @@ export default function StudentDashboard() {
                                 </div>
                                 {tag && (
                                   <span className={`text-[10px] font-bold uppercase tracking-wider shrink-0 ${
-                                    isCorrectOpt ? 'text-emerald-400' : 'text-red-400'
+                                    isCorrectOpt ? 'text-[#439775]' : 'text-[#FF0F67]'
                                   }`}>
                                     {tag}
                                   </span>
@@ -766,29 +765,37 @@ export default function StudentDashboard() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="flex flex-col gap-4 max-w-2xl mx-auto"
+              className="flex flex-col gap-5 max-w-3xl mx-auto"
             >
               <div>
-                <h2 className="text-xl font-bold font-['Space_Grotesk'] text-white">Official Announcements</h2>
-                <p className="text-xs md:text-sm text-slate-400">Updates from SkillFlow Instructors</p>
+                <h2 className="text-2xl sm:text-3xl font-semibold text-[#0A0A0A]">Official Announcements</h2>
+                <p className="text-xs md:text-sm text-[#222222]/60 mt-1">Updates from SkillFlow Instructors</p>
               </div>
 
-              <div className="flex flex-col gap-3">
-                {communityMessages.map((m) => (
-                  <div key={m.id} className="rounded-2xl p-5 bg-white/[0.03] border border-white/[0.07] flex flex-col gap-2.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 uppercase">
-                        SkillFlow Admin
-                      </span>
-                      <span className="text-xs text-slate-400">
-                        {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
+              <div className="flex flex-col gap-4">
+                {communityMessages.map((m, idx) => {
+                  const bgs = ['bg-[#454ADE]/15', 'bg-[#439775]/15', 'bg-[#FFF07C]/25', 'bg-[#f0f0f0]']
+                  return (
+                    <div
+                      key={m.id}
+                      className={`rounded-xl p-5 flex flex-col gap-3 transition-all duration-200 ease-in-out hover:scale-[1.01] hover:rotate-1 hover:shadow-[-6px_6px_32px_8px_rgba(192,192,192,0.25)] ${bgs[idx % bgs.length]}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="-rotate-2 text-[11px] font-semibold px-3.5 py-1 rounded-full bg-[#0A0A0A]/90 text-white uppercase tracking-wider">
+                          SkillFlow Admin
+                        </span>
+                        <span className="text-xs font-medium text-[#222222]/60">
+                          {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      <p className="text-sm md:text-base text-[#0A0A0A] leading-relaxed whitespace-pre-wrap font-medium">{m.message}</p>
                     </div>
-                    <p className="text-sm md:text-base text-slate-200 leading-relaxed whitespace-pre-wrap">{m.message}</p>
-                  </div>
-                ))}
+                  )
+                })}
                 {communityMessages.length === 0 && (
-                  <div className="text-center py-10 text-slate-500 text-sm">No announcements broadcast yet.</div>
+                  <div className="text-center py-12 rounded-xl bg-[#f0f0f0] text-[#222222]/60 text-sm font-medium">
+                    No announcements broadcast yet.
+                  </div>
                 )}
               </div>
             </motion.div>
@@ -801,37 +808,37 @@ export default function StudentDashboard() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="flex flex-col gap-5 max-w-2xl mx-auto"
+              className="flex flex-col gap-5 max-w-3xl mx-auto"
             >
               <div>
-                <h2 className="text-xl font-bold font-['Space_Grotesk'] text-white">Earned Badges & Rewards</h2>
-                <p className="text-xs md:text-sm text-slate-400">Unlock certificates as your score increases</p>
+                <h2 className="text-2xl sm:text-3xl font-semibold text-[#0A0A0A]">Earned Badges &amp; Rewards</h2>
+                <p className="text-xs md:text-sm text-[#222222]/60 mt-1">Unlock certificates as your score increases</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="rounded-2xl p-5 bg-white/[0.03] border border-amber-500/30 flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-2xl">
-                    🏆
+                <div className="rounded-xl p-6 bg-[#FFF07C]/25 hover:scale-105 hover:rotate-2 hover:shadow-[-6px_6px_32px_8px_rgba(192,192,192,0.25)] transition-all duration-200 ease-in-out flex flex-col justify-between gap-4 min-h-[200px]">
+                  <div className="flex items-center justify-between">
+                    <span className="-rotate-2 px-4 py-1 rounded-full bg-[#0A0A0A]/90 text-white text-xs font-semibold">
+                      {leaderboard?.myRank && leaderboard.myRank <= 3 ? 'Unlocked' : 'In Progress'}
+                    </span>
+                    <Trophy className="w-6 h-6 text-[#0A0A0A] rotate-12" />
                   </div>
                   <div>
-                    <h4 className="text-base font-bold text-white">Quiz Champion</h4>
-                    <p className="text-xs text-slate-400 mt-0.5">Top 3 on Leaderboard</p>
-                    <span className="text-[10px] font-bold text-amber-400 uppercase mt-1 inline-block">
-                      {leaderboard?.myRank && leaderboard.myRank <= 3 ? 'Unlocked ✓' : 'In Progress'}
-                    </span>
+                    <h4 className="text-xl font-bold text-[#0A0A0A]">Quiz Champion</h4>
+                    <p className="text-xs text-[#222222]/70 mt-1 font-medium">Reach Top 3 on the global leaderboard</p>
                   </div>
                 </div>
 
-                <div className="rounded-2xl p-5 bg-white/[0.03] border border-indigo-500/30 flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center text-2xl">
-                    🎓
+                <div className="rounded-xl p-6 bg-[#439775]/20 hover:scale-105 hover:-rotate-2 hover:shadow-[-6px_6px_32px_8px_rgba(192,192,192,0.25)] transition-all duration-200 ease-in-out flex flex-col justify-between gap-4 min-h-[200px]">
+                  <div className="flex items-center justify-between">
+                    <span className="rotate-2 px-4 py-1 rounded-full bg-[#0A0A0A]/90 text-white text-xs font-semibold">
+                      {(profile?.total_score || 0) >= 100 ? 'Unlocked' : `${profile?.total_score || 0}/100 pts`}
+                    </span>
+                    <Sparkles className="w-6 h-6 text-[#439775] -rotate-12" />
                   </div>
                   <div>
-                    <h4 className="text-base font-bold text-white">Course Certified</h4>
-                    <p className="text-xs text-slate-400 mt-0.5">Reach 100+ points</p>
-                    <span className="text-[10px] font-bold text-indigo-400 uppercase mt-1 inline-block">
-                      {(profile?.total_score || 0) >= 100 ? 'Unlocked ✓' : `${profile?.total_score || 0}/100 pts`}
-                    </span>
+                    <h4 className="text-xl font-bold text-[#0A0A0A]">Course Certified</h4>
+                    <p className="text-xs text-[#222222]/70 mt-1 font-medium">Earn 100+ points across quizzes</p>
                   </div>
                 </div>
               </div>
@@ -845,60 +852,60 @@ export default function StudentDashboard() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="flex flex-col gap-4 max-w-xl mx-auto"
+              className="flex flex-col gap-5 max-w-xl mx-auto"
             >
               <div>
-                <h2 className="text-xl font-bold font-['Space_Grotesk'] text-white">Student Profile</h2>
-                <p className="text-xs md:text-sm text-slate-400">Your student session details</p>
+                <h2 className="text-2xl sm:text-3xl font-semibold text-[#0A0A0A]">Student Profile</h2>
+                <p className="text-xs md:text-sm text-[#222222]/60 mt-1">Your student session details</p>
               </div>
 
-              <div className="rounded-2xl p-6 bg-white/[0.03] border border-white/[0.07] flex flex-col gap-4">
+              <div className="rounded-xl p-6 bg-[#454ADE]/15 hover:scale-[1.01] hover:rotate-1 hover:shadow-[-6px_6px_32px_8px_rgba(192,192,192,0.25)] transition-all duration-200 ease-in-out flex flex-col gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-bold text-xl">
+                  <div className="w-14 h-14 rounded-2xl bg-[#0A0A0A]/90 text-white flex items-center justify-center font-bold text-xl">
                     {(profile?.name || 'S')[0].toUpperCase()}
                   </div>
                   <div>
-                    <h4 className="text-base font-bold text-white">{profile?.name || 'SkillFlow Student'}</h4>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
+                    <h4 className="text-lg font-bold text-[#0A0A0A]">{profile?.name || 'SkillFlow Student'}</h4>
+                    <span className="-rotate-2 inline-block mt-1 text-[10px] font-bold uppercase tracking-wider text-white bg-[#454ADE] px-3 py-0.5 rounded-full">
                       {profile?.role || 'student'}
                     </span>
                   </div>
                 </div>
 
-                <div className="border-t border-white/[0.06] pt-4 flex flex-col gap-3 text-xs md:text-sm text-slate-300">
+                <div className="border-t border-[#0A0A0A]/10 pt-4 flex flex-col gap-3 text-xs md:text-sm text-[#0A0A0A] font-medium">
                   <div className="flex items-center gap-2.5">
-                    <Mail className="w-4 h-4 text-slate-400" />
+                    <Mail className="w-4 h-4 text-[#454ADE]" />
                     <span>{profile?.email}</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <Shield className="w-4 h-4 text-slate-400" />
+                    <Shield className="w-4 h-4 text-[#439775]" />
                     <span>Verified Student Account</span>
                   </div>
                 </div>
               </div>
 
               {/* Logout */}
-              <div className="pt-2">
+              <div className="pt-1">
                 {!showLogoutConfirm ? (
                   <button
                     onClick={() => setShowLogoutConfirm(true)}
-                    className="w-full py-3.5 rounded-xl font-bold text-sm bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 flex items-center justify-center gap-2 cursor-pointer transition-all"
+                    className="w-full py-3.5 rounded-full font-semibold text-sm bg-[#FF0F67]/15 hover:bg-[#FF0F67]/25 text-[#0A0A0A] flex items-center justify-center gap-2 cursor-pointer transition-all duration-200"
                   >
-                    <LogOut className="w-4 h-4" /> Logout from Session
+                    <LogOut className="w-4 h-4 text-[#FF0F67]" /> Logout from Session
                   </button>
                 ) : (
-                  <div className="p-5 rounded-2xl bg-red-500/10 border border-red-500/20 text-center flex flex-col gap-3">
-                    <p className="text-xs md:text-sm text-red-300">Are you sure you want to log out?</p>
+                  <div className="p-5 rounded-xl bg-[#FF0F67]/15 text-center flex flex-col gap-3">
+                    <p className="text-xs md:text-sm font-medium text-[#0A0A0A]">Are you sure you want to log out?</p>
                     <div className="flex gap-2">
                       <button
                         onClick={() => setShowLogoutConfirm(false)}
-                        className="flex-1 py-2.5 rounded-xl bg-white/5 text-white text-xs font-semibold cursor-pointer"
+                        className="flex-1 py-2.5 rounded-full bg-white text-[#0A0A0A] text-xs font-semibold cursor-pointer"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={handleLogout}
-                        className="flex-1 py-2.5 rounded-xl bg-red-600 text-white text-xs font-bold cursor-pointer"
+                        className="flex-1 py-2.5 rounded-full bg-[#FF0F67] text-white text-xs font-bold cursor-pointer"
                       >
                         Confirm Logout
                       </button>

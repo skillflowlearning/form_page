@@ -24,12 +24,6 @@ const createEmptyQuestion = (): QuestionDraft => ({
   correct_option: 0,
 })
 
-const medals = [
-  { label: '1st', color: '#f59e0b', emoji: '🥇' },
-  { label: '2nd', color: '#94a3b8', emoji: '🥈' },
-  { label: '3rd', color: '#b45309', emoji: '🥉' },
-]
-
 export default function AdminDashboard() {
   const navigate = useNavigate()
   const [activeTabIdx, setActiveTabIdx] = useState(0)
@@ -293,20 +287,19 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#03060f] text-slate-100 flex flex-col font-sans select-none overflow-x-hidden">
+    <div className="min-h-screen bg-white text-[#0A0A0A] flex flex-col font-sans select-none overflow-x-hidden">
       {/* Toast Notification */}
       {toast && (
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="fixed top-5 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl flex items-center gap-3 text-xs font-semibold backdrop-blur-xl border shadow-xl"
-          style={{
-            background: toast.type === 'success' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
-            borderColor: toast.type === 'success' ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)',
-            color: toast.type === 'success' ? '#4ade80' : '#f87171',
-          }}
+          className={`fixed top-5 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-full flex items-center gap-2.5 text-xs font-semibold shadow-xl ${
+            toast.type === 'success'
+              ? 'bg-[#0A0A0A] text-white'
+              : 'bg-[#FF0F67] text-white'
+          }`}
         >
-          {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+          {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-[#36D399]" /> : <AlertCircle className="w-4 h-4 text-white" />}
           <span>{toast.text}</span>
         </motion.div>
       )}
@@ -357,50 +350,67 @@ export default function AdminDashboard() {
               exit={{ opacity: 0, y: -10 }}
               className="flex flex-col gap-6"
             >
-              {/* Banner */}
-              <div className="rounded-3xl p-6 md:p-8 relative overflow-hidden bg-gradient-to-br from-amber-950/40 via-red-950/20 to-black/80 border border-amber-500/30">
-                <span className="text-xs uppercase tracking-wider text-amber-400 font-bold">Admin Console</span>
-                <h2 className="text-2xl md:text-4xl font-extrabold font-['Space_Grotesk'] text-white mt-1">
-                  System Overview
-                </h2>
-                <p className="text-xs md:text-sm text-slate-300 mt-2">
-                  Managing live skill contests, student scores and broadcasts.
+              {/* Intro Banner */}
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pt-2">
+                <div>
+                  <span className="-rotate-2 inline-block px-3.5 py-1 rounded-full bg-[#0A0A0A]/90 text-white text-[11px] font-semibold uppercase tracking-wider mb-3">
+                    Admin Console
+                  </span>
+                  <h2 className="text-3xl sm:text-4xl font-semibold text-[#0A0A0A] leading-tight">
+                    System Overview
+                  </h2>
+                </div>
+                <p className="text-xs md:text-sm font-medium text-[#222222]/60 max-w-sm">
+                  Managing live skill contests, student scores, rankings, and community broadcasts.
                 </p>
               </div>
 
-              {/* Stats Grid */}
+              {/* Pastel Bento Stats Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="rounded-2xl p-5 bg-white/[0.03] border border-white/[0.07]">
-                  <span className="text-xs text-slate-400 font-semibold">Total Students</span>
-                  <div className="text-3xl font-extrabold font-['Space_Grotesk'] text-white mt-2">{stats.students}</div>
+                <div className="rounded-xl p-5 bg-[#439775]/20 hover:scale-105 hover:rotate-2 hover:shadow-[-6px_6px_32px_8px_rgba(192,192,192,0.25)] transition-all duration-200 ease-in-out flex flex-col justify-between gap-3 min-h-[140px]">
+                  <span className="-rotate-2 w-fit px-3 py-1 rounded-full bg-[#0A0A0A]/90 text-white text-[11px] font-semibold">
+                    Total Students
+                  </span>
+                  <div className="text-3xl sm:text-4xl font-bold text-[#0A0A0A]">{stats.students}</div>
                 </div>
-                <div className="rounded-2xl p-5 bg-white/[0.03] border border-white/[0.07]">
-                  <span className="text-xs text-slate-400 font-semibold">Live Quizzes</span>
-                  <div className="text-3xl font-extrabold font-['Space_Grotesk'] text-indigo-400 mt-2">{stats.quizzes}</div>
+
+                <div className="rounded-xl p-5 bg-[#454ADE]/20 hover:scale-105 hover:-rotate-2 hover:shadow-[-6px_6px_32px_8px_rgba(192,192,192,0.25)] transition-all duration-200 ease-in-out flex flex-col justify-between gap-3 min-h-[140px]">
+                  <span className="rotate-2 w-fit px-3 py-1 rounded-full bg-[#0A0A0A]/90 text-white text-[11px] font-semibold">
+                    Live Quizzes
+                  </span>
+                  <div className="text-3xl sm:text-4xl font-bold text-[#0A0A0A]">{stats.quizzes}</div>
                 </div>
-                <div className="rounded-2xl p-5 bg-white/[0.03] border border-white/[0.07]">
-                  <span className="text-xs text-slate-400 font-semibold">System Status</span>
-                  <div className="text-lg font-bold font-['Space_Grotesk'] text-emerald-400 mt-3">Active 🟢</div>
+
+                <div className="rounded-xl p-5 bg-[#FFF07C]/25 hover:scale-105 hover:rotate-3 hover:shadow-[-6px_6px_32px_8px_rgba(192,192,192,0.25)] transition-all duration-200 ease-in-out flex flex-col justify-between gap-3 min-h-[140px]">
+                  <span className="-rotate-3 w-fit px-3 py-1 rounded-full bg-[#0A0A0A]/90 text-white text-[11px] font-semibold">
+                    System Status
+                  </span>
+                  <div className="text-xl font-bold text-[#439775]">Active</div>
                 </div>
-                <div className="rounded-2xl p-5 bg-white/[0.03] border border-white/[0.07]">
-                  <span className="text-xs text-slate-400 font-semibold">Admin Account</span>
-                  <div className="text-xs font-mono text-slate-300 truncate mt-3">{profile?.email}</div>
+
+                <div className="rounded-xl p-5 bg-[#FF0F67]/20 hover:scale-105 hover:-rotate-3 hover:shadow-[-6px_6px_32px_8px_rgba(192,192,192,0.25)] transition-all duration-200 ease-in-out flex flex-col justify-between gap-3 min-h-[140px]">
+                  <span className="rotate-3 w-fit px-3 py-1 rounded-full bg-white/85 text-[#0A0A0A] text-[11px] font-semibold">
+                    Admin Account
+                  </span>
+                  <div className="text-xs font-mono font-semibold text-[#0A0A0A] truncate">{profile?.email}</div>
                 </div>
               </div>
 
               {/* Leaderboard */}
-              <div className="rounded-3xl bg-white/[0.03] border border-white/[0.07] p-6 flex flex-col gap-4">
+              <div className="rounded-xl bg-[#454ADE]/15 hover:shadow-[-6px_6px_32px_8px_rgba(192,192,192,0.25)] transition-all duration-200 ease-in-out p-6 flex flex-col gap-4">
                 <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <Trophy className="w-5 h-5 text-amber-400" />
-                    <h3 className="text-base font-bold font-['Space_Grotesk'] text-white">Top 3 Performing Students</h3>
+                  <div className="flex items-center gap-3">
+                    <span className="-rotate-2 px-4 py-1.5 rounded-full bg-[#0A0A0A]/90 text-white text-xs font-semibold inline-flex items-center gap-2">
+                      <Trophy className="w-3.5 h-3.5 text-[#FFF07C]" />
+                      Top 3 Performing Students
+                    </span>
                   </div>
 
                   {allRanked.length > 3 && (
                     <button
                       type="button"
                       onClick={() => setShowAllLeaderboard(prev => !prev)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-xs font-semibold text-slate-200 cursor-pointer transition-colors"
+                      className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/85 hover:bg-white text-xs font-semibold text-[#0A0A0A] cursor-pointer transition-colors shadow-sm"
                     >
                       {showAllLeaderboard ? (
                         <>Hide All <ChevronUp className="w-3.5 h-3.5" /></>
@@ -412,28 +422,21 @@ export default function AdminDashboard() {
                 </div>
 
                 <div className="flex flex-col gap-2.5">
-                  {leaderboard.map((item, idx) => {
-                    const badgeStyles = [
-                      'bg-amber-500/15 border-amber-400/40 text-amber-300',
-                      'bg-slate-400/15 border-slate-300/30 text-slate-200',
-                      'bg-orange-600/15 border-orange-500/30 text-orange-300',
-                    ]
-                    return (
-                      <div key={item.id} className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.06] flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-xl border flex items-center justify-center text-sm font-extrabold ${badgeStyles[idx] || badgeStyles[2]}`}>
-                            {medals[idx]?.emoji || `#${item.rank}`}
-                          </div>
-                          <div>
-                            <p className="text-sm font-semibold text-white">{item.name || 'Student'}</p>
-                            <p className="text-xs text-slate-400">Rank #{item.rank} • {medals[idx]?.label || `${item.rank}th`} Place</p>
-                          </div>
+                  {leaderboard.map((item) => (
+                    <div key={item.id} className="p-3.5 rounded-xl bg-white/80 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-[#0A0A0A]/90 text-white flex items-center justify-center text-xs font-bold">
+                          #{item.rank}
                         </div>
-                        <span className="text-sm font-bold text-amber-400 font-['Space_Grotesk']">{item.total_score} pts</span>
+                        <div>
+                          <p className="text-sm font-bold text-[#0A0A0A]">{item.name || 'Student'}</p>
+                          <p className="text-xs text-[#222222]/60 font-medium">Rank #{item.rank}</p>
+                        </div>
                       </div>
-                    )
-                  })}
-                  {leaderboard.length === 0 && <p className="text-xs text-slate-500 py-3 text-center">No scores yet.</p>}
+                      <span className="text-sm font-bold text-[#454ADE]">{item.total_score} pts</span>
+                    </div>
+                  ))}
+                  {leaderboard.length === 0 && <p className="text-xs text-[#222222]/60 py-3 text-center">No scores yet.</p>}
                 </div>
 
                 {/* Expandable Full Ranked Student List */}
@@ -443,19 +446,19 @@ export default function AdminDashboard() {
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden border-t border-white/[0.07] pt-4"
+                      className="overflow-hidden border-t border-[#0A0A0A]/10 pt-4"
                     >
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#222222]/60 mb-3">
                         All Ranked Students ({allRanked.length})
                       </h4>
-                      <div className="flex flex-col divide-y divide-white/[0.05] max-h-80 overflow-y-auto pr-1">
+                      <div className="flex flex-col gap-2 max-h-80 overflow-y-auto pr-1">
                         {allRanked.map(student => (
-                          <div key={student.id} className="py-2.5 flex items-center justify-between text-sm">
+                          <div key={student.id} className="px-3.5 py-2.5 rounded-xl bg-white/75 flex items-center justify-between text-sm">
                             <div className="flex items-center gap-3">
-                              <span className="w-8 text-xs font-mono font-bold text-indigo-400">#{student.rank}</span>
-                              <span className="text-slate-200 font-medium">{student.name}</span>
+                              <span className="w-8 text-xs font-mono font-bold text-[#454ADE]">#{student.rank}</span>
+                              <span className="text-[#0A0A0A] font-semibold">{student.name}</span>
                             </div>
-                            <span className="font-bold font-['Space_Grotesk'] text-amber-400">{student.total_score} pts</span>
+                            <span className="font-bold text-[#439775]">{student.total_score} pts</span>
                           </div>
                         ))}
                       </div>
@@ -477,21 +480,21 @@ export default function AdminDashboard() {
             >
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-bold font-['Space_Grotesk'] text-white">Create New Quiz</h2>
-                  <p className="text-xs text-slate-400 mt-1">Add 1 to 15 questions &amp; publish instantly for students</p>
+                  <h2 className="text-2xl sm:text-3xl font-semibold text-[#0A0A0A]">Create New Quiz</h2>
+                  <p className="text-xs text-[#222222]/60 mt-1">Add 1 to 15 questions &amp; publish instantly for students</p>
                 </div>
-                <span className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold shrink-0">
+                <span className="-rotate-2 px-3.5 py-1 rounded-full bg-[#0A0A0A]/90 text-white text-xs font-bold shrink-0">
                   {questionList.length} / 15 Qs
                 </span>
               </div>
 
               <form onSubmit={handleCreateQuiz} className="flex flex-col gap-4">
                 {/* Quiz Metadata Card: Title + Timer Duration */}
-                <div className="rounded-2xl p-5 bg-white/[0.03] border border-white/[0.07] flex flex-col gap-4">
+                <div className="rounded-xl p-5 bg-[#439775]/20 flex flex-col gap-4">
                   <div>
-                    <label className="text-xs font-bold uppercase text-slate-400 block mb-2">Quiz Title</label>
+                    <label className="text-xs font-bold uppercase text-[#0A0A0A] block mb-2">Quiz Title</label>
                     <input
-                      className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-amber-400"
+                      className="w-full bg-white/85 rounded-xl px-4 py-3 text-sm text-[#0A0A0A] placeholder-[#222222]/40 outline-none focus:ring-2 focus:ring-[#439775]"
                       placeholder="e.g. Next.js & React Core Concepts"
                       value={qTitle}
                       onChange={e => setQTitle(e.target.value)}
@@ -499,19 +502,19 @@ export default function AdminDashboard() {
                   </div>
 
                   <div>
-                    <label className="text-xs font-bold uppercase text-slate-400 flex items-center gap-1.5 mb-2">
-                      <Clock className="w-3.5 h-3.5 text-amber-400" />
+                    <label className="text-xs font-bold uppercase text-[#0A0A0A] flex items-center gap-1.5 mb-2">
+                      <Clock className="w-3.5 h-3.5 text-[#439775]" />
                       Timer Duration (Minutes)
                     </label>
                     <input
                       type="number"
                       min={1}
                       max={180}
-                      className="w-full sm:w-44 bg-white/[0.04] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-amber-400"
+                      className="w-full sm:w-44 bg-white/85 rounded-xl px-4 py-2.5 text-sm text-[#0A0A0A] outline-none focus:ring-2 focus:ring-[#439775]"
                       value={durationMinutes}
                       onChange={e => setDurationMinutes(Math.max(1, parseInt(e.target.value || '8', 10)))}
                     />
-                    <p className="text-[11px] text-slate-500 mt-1">Default: 8 minutes. Auto-submits when time ends.</p>
+                    <p className="text-[11px] text-[#222222]/65 mt-1 font-medium">Default: 8 minutes. Auto-submits when time ends.</p>
                   </div>
                 </div>
 
@@ -519,17 +522,17 @@ export default function AdminDashboard() {
                 {questionList.map((q, qIdx) => (
                   <div
                     key={qIdx}
-                    className="rounded-2xl p-5 bg-white/[0.03] border border-white/[0.07] flex flex-col gap-3"
+                    className="rounded-xl p-5 bg-[#f0f0f0] flex flex-col gap-3 transition-all duration-200 ease-in-out"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
+                      <span className="-rotate-1 px-3.5 py-1 rounded-full bg-[#0A0A0A]/90 text-white text-xs font-semibold">
                         Question {qIdx + 1}
                       </span>
                       {qIdx > 0 && (
                         <button
                           type="button"
                           onClick={() => handleRemoveQuestion(qIdx)}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-xs font-semibold cursor-pointer transition-colors"
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FF0F67]/15 hover:bg-[#FF0F67]/25 text-[#FF0F67] text-xs font-semibold cursor-pointer transition-colors"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                           Remove
@@ -539,13 +542,13 @@ export default function AdminDashboard() {
 
                     <textarea
                       rows={2}
-                      className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-amber-400 resize-none"
+                      className="w-full bg-white rounded-xl px-4 py-3 text-sm text-[#0A0A0A] placeholder-[#222222]/40 outline-none focus:ring-2 focus:ring-[#454ADE] resize-none"
                       placeholder={`Enter question ${qIdx + 1} text...`}
                       value={q.question_text}
                       onChange={e => handleQuestionTextChange(qIdx, e.target.value)}
                     />
 
-                    <label className="text-[11px] font-bold uppercase text-slate-400 mt-1">
+                    <label className="text-[11px] font-bold uppercase text-[#222222]/70 mt-1">
                       Options (Select correct answer)
                     </label>
                     <div className="flex flex-col gap-2.5">
@@ -556,10 +559,10 @@ export default function AdminDashboard() {
                             name={`correctOpt-${qIdx}`}
                             checked={q.correct_option === optIdx}
                             onChange={() => handleCorrectOptChange(qIdx, optIdx)}
-                            className="w-4 h-4 accent-amber-500 cursor-pointer shrink-0"
+                            className="w-4 h-4 accent-[#439775] cursor-pointer shrink-0"
                           />
                           <input
-                            className="flex-1 bg-white/[0.04] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-amber-400"
+                            className="flex-1 bg-white rounded-xl px-4 py-2.5 text-sm text-[#0A0A0A] placeholder-[#222222]/40 outline-none focus:ring-2 focus:ring-[#454ADE]"
                             placeholder={`Option ${String.fromCharCode(65 + optIdx)}`}
                             value={opt}
                             onChange={e => handleOptionChange(qIdx, optIdx, e.target.value)}
@@ -575,9 +578,9 @@ export default function AdminDashboard() {
                   type="button"
                   onClick={handleAddQuestion}
                   disabled={questionList.length >= 15}
-                  className="w-full py-3 rounded-xl font-semibold text-sm bg-white/[0.04] hover:bg-white/[0.08] border border-dashed border-white/20 text-slate-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="w-full py-3 rounded-full font-semibold text-sm bg-[#454ADE]/15 hover:bg-[#454ADE]/25 text-[#0A0A0A] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
-                  <Plus className="w-4 h-4 text-amber-400" />
+                  <Plus className="w-4 h-4 text-[#454ADE]" />
                   Add Question ({questionList.length}/15)
                 </button>
 
@@ -585,7 +588,7 @@ export default function AdminDashboard() {
                 <button
                   type="submit"
                   disabled={creatingQuiz}
-                  className="w-full py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-amber-500 to-orange-600 text-white cursor-pointer hover:opacity-90 disabled:opacity-40 shadow-lg shadow-amber-500/20"
+                  className="w-full py-3.5 rounded-full font-bold text-sm bg-[#0A0A0A]/90 hover:bg-[#0A0A0A] text-white cursor-pointer disabled:opacity-40 transition-colors"
                 >
                   {creatingQuiz
                     ? 'Publishing Quiz...'
@@ -605,14 +608,14 @@ export default function AdminDashboard() {
               className="flex flex-col gap-5 max-w-2xl mx-auto"
             >
               <div>
-                <h2 className="text-xl font-bold font-['Space_Grotesk'] text-white">Broadcast Announcement</h2>
-                <p className="text-xs text-slate-400 mt-1">Post updates to student community feed</p>
+                <h2 className="text-2xl sm:text-3xl font-semibold text-[#0A0A0A]">Broadcast Announcement</h2>
+                <p className="text-xs text-[#222222]/60 mt-1">Post updates to student community feed</p>
               </div>
 
-              <form onSubmit={handleBroadcast} className="flex flex-col gap-3">
+              <form onSubmit={handleBroadcast} className="flex flex-col gap-3 rounded-xl p-5 bg-[#454ADE]/15">
                 <textarea
                   rows={3}
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-2xl p-4 text-sm text-white outline-none focus:border-indigo-400 resize-none"
+                  className="w-full bg-white rounded-xl p-4 text-sm text-[#0A0A0A] placeholder-[#222222]/40 outline-none focus:ring-2 focus:ring-[#454ADE] resize-none"
                   placeholder="Type an announcement to broadcast..."
                   value={broadcastMsg}
                   onChange={e => setBroadcastMsg(e.target.value)}
@@ -620,17 +623,22 @@ export default function AdminDashboard() {
                 <button
                   type="submit"
                   disabled={broadcasting || !broadcastMsg.trim()}
-                  className="py-3 rounded-xl font-bold text-sm bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer disabled:opacity-40"
+                  className="py-3 rounded-full font-semibold text-sm bg-[#0A0A0A]/90 hover:bg-[#0A0A0A] text-white cursor-pointer disabled:opacity-40 transition-colors"
                 >
                   {broadcasting ? 'Posting...' : 'Send Broadcast'}
                 </button>
               </form>
 
-              <div className="flex flex-col gap-3 mt-4">
-                <h4 className="text-xs uppercase font-bold text-slate-400">Recent Broadcasts</h4>
-                {recentMsgs.map(m => (
-                  <div key={m.id} className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.07] text-sm text-slate-300">
-                    <div className="text-[10px] text-slate-400 mb-1">{new Date(m.created_at).toLocaleString()}</div>
+              <div className="flex flex-col gap-3 mt-2">
+                <h4 className="text-xs uppercase font-bold text-[#222222]/60">Recent Broadcasts</h4>
+                {recentMsgs.map((m, idx) => (
+                  <div
+                    key={m.id}
+                    className={`p-4 rounded-xl text-sm text-[#0A0A0A] font-medium hover:scale-[1.01] transition-all duration-200 ${
+                      idx % 2 === 0 ? 'bg-[#FFF07C]/25' : 'bg-[#f0f0f0]'
+                    }`}
+                  >
+                    <div className="text-[11px] text-[#222222]/60 mb-1">{new Date(m.created_at).toLocaleString()}</div>
                     {m.message}
                   </div>
                 ))}
@@ -648,17 +656,17 @@ export default function AdminDashboard() {
               className="flex flex-col gap-5 max-w-2xl mx-auto"
             >
               <div>
-                <h2 className="text-xl font-bold font-['Space_Grotesk'] text-white">User Role Management</h2>
-                <p className="text-xs text-slate-400 mt-1">Promote or manage students</p>
+                <h2 className="text-2xl sm:text-3xl font-semibold text-[#0A0A0A]">User Role Management</h2>
+                <p className="text-xs text-[#222222]/60 mt-1">Promote or manage students</p>
               </div>
 
-              <div className="rounded-2xl p-5 bg-white/[0.03] border border-white/[0.07] flex flex-col gap-3">
-                <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                  <UserPlus className="w-4 h-4 text-amber-400" /> Promote User to Admin
-                </h4>
-                <div className="flex gap-2 mt-2">
+              <div className="rounded-xl p-6 bg-[#FFF07C]/25 hover:scale-[1.01] hover:rotate-1 hover:shadow-[-6px_6px_32px_8px_rgba(192,192,192,0.25)] transition-all duration-200 ease-in-out flex flex-col gap-3">
+                <span className="-rotate-2 w-fit px-3.5 py-1 rounded-full bg-[#0A0A0A]/90 text-white text-xs font-semibold inline-flex items-center gap-2">
+                  <UserPlus className="w-3.5 h-3.5 text-[#FFF07C]" /> Promote User to Admin
+                </span>
+                <div className="flex flex-col sm:flex-row gap-2 mt-2">
                   <input
-                    className="flex-1 bg-white/[0.04] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-amber-400"
+                    className="flex-1 bg-white rounded-xl px-4 py-2.5 text-sm text-[#0A0A0A] placeholder-[#222222]/40 outline-none focus:ring-2 focus:ring-[#0A0A0A]"
                     placeholder="user@skillflowlearn.com"
                     value={targetEmail}
                     onChange={e => setTargetEmail(e.target.value)}
@@ -666,7 +674,7 @@ export default function AdminDashboard() {
                   <button
                     onClick={handleMakeAdmin}
                     disabled={userActionLoading || !targetEmail.trim()}
-                    className="px-5 py-2.5 rounded-xl font-bold text-xs bg-amber-500 hover:bg-amber-400 text-black cursor-pointer disabled:opacity-40"
+                    className="px-6 py-2.5 rounded-full font-bold text-xs bg-[#0A0A0A]/90 hover:bg-[#0A0A0A] text-white cursor-pointer disabled:opacity-40 transition-colors"
                   >
                     Promote
                   </button>
@@ -685,21 +693,21 @@ export default function AdminDashboard() {
               className="flex flex-col gap-5 max-w-xl mx-auto"
             >
               <div>
-                <h2 className="text-xl font-bold font-['Space_Grotesk'] text-white">Admin Session</h2>
-                <p className="text-xs text-slate-400 mt-1">Administrator details</p>
+                <h2 className="text-2xl sm:text-3xl font-semibold text-[#0A0A0A]">Admin Session</h2>
+                <p className="text-xs text-[#222222]/60 mt-1">Administrator details</p>
               </div>
 
-              <div className="rounded-2xl p-6 bg-white/[0.03] border border-white/[0.07] flex flex-col gap-3">
-                <div className="text-sm text-white font-bold">{profile?.name || 'Administrator'}</div>
-                <div className="text-xs text-slate-400">{profile?.email}</div>
-                <span className="w-fit text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded border border-amber-500/20 mt-1">
+              <div className="rounded-xl p-6 bg-[#f0f0f0] hover:scale-[1.01] hover:rotate-1 hover:shadow-[-6px_6px_32px_8px_rgba(192,192,192,0.25)] transition-all duration-200 ease-in-out flex flex-col gap-3">
+                <div className="text-base text-[#0A0A0A] font-bold">{profile?.name || 'Administrator'}</div>
+                <div className="text-xs text-[#222222]/70 font-medium">{profile?.email}</div>
+                <span className="-rotate-2 w-fit text-[10px] font-bold uppercase tracking-wider text-white bg-[#0A0A0A]/90 px-3 py-1 rounded-full mt-1">
                   System Admin
                 </span>
               </div>
 
               <button
                 onClick={handleLogout}
-                className="w-full py-3.5 rounded-xl font-bold text-sm bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 cursor-pointer"
+                className="w-full py-3.5 rounded-full font-semibold text-sm bg-[#FF0F67]/15 hover:bg-[#FF0F67]/25 text-[#0A0A0A] cursor-pointer transition-colors"
               >
                 Logout from Admin Console
               </button>
